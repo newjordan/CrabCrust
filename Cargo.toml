@@ -1,81 +1,42 @@
 [package]
-name = "crabmusic"
+name = "crabcrust"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.75"
-authors = ["CrabMusic Contributors"]
-description = "Real-time ASCII music visualizer for terminal"
-license = "MIT"
-repository = "https://github.com/newjordan/crabmusic"
-keywords = ["audio", "visualization", "terminal", "music", "ascii"]
-categories = ["multimedia::audio", "visualization"]
+authors = ["CrabCrust Contributors"]
+description = "Add arcade-style animations to your CLI tools 🦀✨"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/yourusername/crabcrust"
+keywords = ["cli", "terminal", "animation", "braille", "arcade"]
+categories = ["command-line-utilities", "visualization"]
+
+[[bin]]
+name = "crabcrust"
+path = "src/main.rs"
 
 [dependencies]
-# Audio capture
-cpal = "0.15"
-ringbuf = "0.4.8"
+# Terminal rendering
+ratatui = "0.29"
+crossterm = "0.28"
 
-# DSP processing
-rustfft = "6.1"
-spectrum-analyzer = "1.0"
-
-# Terminal UI
-ratatui = "0.26"
-crossterm = "0.27"
-
-# Configuration
-serde = { version = "1.0", features = ["derive"] }
-serde_yaml = "0.9"
-
-# CLI
-clap = { version = "4.5", features = ["derive"] }
+# CLI argument parsing
+clap = { version = "4.5", features = ["derive", "cargo"] }
 
 # Error handling
 anyhow = "1.0"
 thiserror = "1.0"
 
-# Logging
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+# Async runtime (for non-blocking command execution)
+tokio = { version = "1.41", features = ["full"] }
 
-# Async runtime (optional, for config hot-reload)
-tokio = { version = "1.35", features = ["fs", "time"], optional = true }
-ctrlc = "3.5.1"
-notify = { version = "7.0.0", features = ["serde"] }
-ffmpeg-next = { version = "8.0.0", optional = true }
-image = { version = "0.25.6", optional = true }
-
-# Windows WASAPI for native loopback capture
-[target.'cfg(windows)'.dependencies]
-wasapi = "0.21"
+# Serialization (for config files)
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
 
 [dev-dependencies]
-criterion = "0.5"
-rand = "0.8"
+pretty_assertions = "1.4"
 
 [profile.release]
-opt-level = 3           # Maximum optimization
-lto = "fat"             # Link-time optimization
-codegen-units = 1       # Single codegen unit for better optimization
-strip = true            # Strip symbols
-panic = "abort"         # Smaller binary, faster panic
-
-[features]
-default = ["image"]
-hot-reload = ["tokio"]
-video = ["ffmpeg-next", "image"]
-ffmpeg-next = ["dep:ffmpeg-next"]
-image = ["dep:image"]
-
-[[bench]]
-name = "fft_benchmark"
-harness = false
-
-[[bench]]
-name = "render_benchmark"
-harness = false
-
-[[bench]]
-name = "ring_buffer_benchmark"
-harness = false
-
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

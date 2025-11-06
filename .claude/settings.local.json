@@ -1,14 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "WebSearch",
-      "Bash(cargo build:*)",
-      "Bash(cargo test:*)",
-      "Bash(if [ -f \"$HOME/.cargo/env\" ])",
-      "Bash(then source \"$HOME/.cargo/env\")",
-      "Bash(else echo \"Checking system install...\")",
-      "Bash(fi)",
-      "Bash(source \"$HOME/.cargo/env\")"
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git add:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

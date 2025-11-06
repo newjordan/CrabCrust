@@ -1,241 +1,230 @@
-# 🦀 CrabMusic
+# CrabCrust 🦀✨
 
-CrabMusic is an experimental project into the boundaries of ASCII control, utilizing a Rust framework.
+**Add arcade-style animations to your CLI tools!**
 
-Made with love by Frosty40. Build bridges not bombs.
+Transform boring command-line interfaces into engaging, arcade-like experiences with stunning Braille-based terminal animations. Every git commit becomes a save animation, every push launches a rocket, and every command feels like a celebration!
 
-## ✨ Current Capabilities
+## ✨ Features
 
-- 🟣 Unicode Braille engine for ultra‑fine ASCII art (2×4 dots per cell)
-- 🌈 Color modes: Off → Grayscale → Full RGB
-- � Multiple character sets for audio visuals (7 styles)
-- �🖼️ Image viewer: `--image <file>` or drag/paste with `--image-drop`
-- 🔁 Two‑image morph (crossfade, ping‑pong loop): `--morph-a <A>` `--morph-b <B>` `[--morph-duration ms]`
-- �️ Live image controls: `[ / ]` speed, `r` reverse, `Space` pause, `l` letterbox, `c` color, `+/-` threshold, `a` auto‑threshold, `x` maximize, `s` save
-- 💾 Save Braille art to text: writes `<image_stem>.braille.txt`
-- 📐 Smart fit: letterbox ON/OFF, live terminal resize handling, optional canvas maximize `x`
-- 🎞️ Video playback: `--video <file>` (feature‑gated)
-- 🎵 Audio visualization: microphone and Windows WASAPI loopback capture
-- 🔊 Audio output (hear while visualizing) and device selection for input/output
-- ⚙️ Configurable via YAML with hot‑reload
-- ⚡ High‑performance Rust renderer with differential updates
-- 🖥️ Cross‑platform (Windows, macOS, Linux)
+- **High-Resolution Braille Graphics**: Uses Unicode Braille characters (⣿) for 8× terminal resolution (2×4 dots per cell)
+- **Procedural Animations**: Hand-crafted animations including spinners, rockets, save disks, and more
+- **Git Integration**: Themed animations for git commands (commit, push, pull, etc.)
+- **Zero Dependencies on Video Files**: All animations are procedurally generated
+- **Terminal-Native**: Works in any modern terminal with Unicode support
+- **Fast & Lightweight**: Written in Rust for blazing-fast performance
 
-## 🚀 Quick Start
-
-### Installation
+## 🎮 Demo
 
 ```bash
-# Clone the repository
-git clone https://github.com/newjordan/crabmusic.git
-cd crabmusic
+# Test all animations
+crabcrust demo all
 
-# Build the project
-cargo build --release
-
-# Run with default settings (microphone input)
-cargo run --release
+# Test individual animations
+crabcrust demo spinner
+crabcrust demo rocket
+crabcrust demo save
 ```
 
-### Quick Start: Images
+## 🚀 Installation
+
+### From Source
 
 ```bash
-# Open a single image (Braille art)
-cargo run --release -- --image ".\media\viper.jpg"
-
-# Start a morph that ping‑pongs between two images (A↔B)
-cargo run --release -- --morph-a ".\media\viper.jpg" --morph-b ".\media\tiger.jpg"
-
-# Optional: set morph duration per leg (ms)
-cargo run --release -- --morph-a ".\media\viper.jpg" --morph-b ".\media\tiger.jpg" --morph-duration 4000
-
-# Drag-and-paste mode: start, then paste paths to view
-cargo run --release -- --image-drop
+git clone https://github.com/yourusername/crabcrust.git
+cd crabcrust
+cargo install --path .
 ```
 
-### Quick Start: Audio
+### Using Cargo
 
 ```bash
-# Windows system audio (WASAPI loopback)
-cargo run --release -- --loopback
-
-# Mic input, pick devices
-cargo run --release -- --device "Microphone" --output-device "Speakers"
+cargo install crabcrust
 ```
 
-### Quick Start: Video (feature-gated)
+## 📖 Usage
+
+### Git Wrapper
+
+The most common use case is wrapping git commands:
 
 ```bash
-# Play a video file as Braille
-cargo run --release -- --video ".\media\clip.mp4"
+# Use crabcrust to run git commands with animations
+crabcrust git commit -m "Add new feature"  # Shows save animation
+crabcrust git push                          # Shows rocket launch animation
+crabcrust git pull                          # Shows loading spinner
+crabcrust git status                        # Shows quick spinner
 ```
 
-### More
+### Shell Alias
+
+For the ultimate experience, add these to your `.bashrc` or `.zshrc`:
 
 ```bash
-# List audio devices
-cargo run --release -- --list-devices
-
-# Show all options
-cargo run --release -- --help
+alias git="crabcrust git"
 ```
 
-## ⌨️ Image Mode Controls
-
-- `m` - start/stop morph (prompt for second image when starting from single image)
-- `Space` - pause/unpause morph
-- `r` - reverse morph direction instantly
-- `[` / `]` - faster / slower (shorter/longer duration per leg)
-- `l` - letterbox ON/OFF (preserve aspect vs fill)
-- `c` - color mode: Off → Grayscale → Full RGB
-- `+` / `-` - manual threshold up/down; `a` - toggle auto-threshold
-- `x` - attempt to maximize canvas (some terminals may not allow programmatic resize)
-- `s` - save current Braille art to `<image_stem>.braille.txt` next to the image
-- `Esc` - clears typed input/morph prompt; `Esc` again (empty) quits; `q` also quits
-
-## 📝 Configuration
-
-CrabMusic uses YAML configuration files. The default configuration is loaded from `config.default.yaml`.
-
-Key configuration options:
-- Audio sample rate and buffer sizes
-- DSP processing parameters (FFT size, smoothing, frequency ranges)
-- Visualization settings (amplitude scale, frequency scale, wave count)
-- Character set selection
-- Target FPS
-
-See `config.default.yaml` for all available options and detailed comments.
-
-## 🛠️ Development
-
-### Prerequisites
-
-- Rust 1.75 or later
-- System audio libraries:
-  - **Linux**: ALSA development files (`libasound2-dev` on Debian/Ubuntu)
-  - **macOS**: CoreAudio (included with Xcode)
-  - **Windows**: WASAPI (included with Windows)
-
-### Building
+Now every git command automatically gets animated!
 
 ```bash
-# Debug build
-cargo build
-
-# Release build (optimized)
-cargo build --release
-
-# Run tests
-cargo test
-
-# Run benchmarks
-cargo bench
-
-# Check code quality
-cargo clippy
-cargo fmt
+git commit -m "This will show a floppy disk save animation! 💾"
+git push  # 🚀 Rocket launch!
 ```
 
-### Project Structure
+## 🎨 Animations
 
-```
-crabmusic/
-├── src/
-│   ├── main.rs              # Application entry point
-│   ├── audio/               # Audio capture and playback
-│   │   ├── cpal_device.rs   # CPAL-based audio capture
-│   │   ├── wasapi_loopback.rs  # Windows WASAPI loopback (system audio)
-│   │   ├── output_device.rs # Audio output/passthrough
-│   │   └── ring_buffer.rs   # Lock-free ring buffer
-│   ├── dsp/                 # DSP processing (FFT, frequency analysis)
-│   ├── visualization/       # Visualization engine
-│   │   ├── sine_wave.rs     # Sine wave visualizer
-│   │   └── character_sets.rs # ASCII/Unicode character sets
-│   ├── rendering/           # Terminal rendering with differential updates
-│   └── config/              # Configuration management
-├── tests/                   # Integration tests
-├── benches/                 # Performance benchmarks
-└── config.default.yaml      # Default configuration
-```
+### Spinner Animation
+A smooth rotating circle with a trailing effect - perfect for loading states.
+
+**Used for**: Generic commands, status checks, pull operations
+
+### Rocket Animation
+A rocket ship launching upward with flame effects and stars - celebrating your code going live!
+
+**Used for**: `git push`
+
+**Duration**: 2 seconds
+
+**Features**:
+- Procedurally generated stars
+- Animated flame with flickering effect
+- Smooth easing animation
+
+### Save Animation
+A floppy disk icon with progress bar and checkmark - the classic save icon!
+
+**Used for**: `git commit`
+
+**Duration**: 1.5 seconds
+
+**Phases**:
+1. Disk appears
+2. Progress bar fills
+3. Checkmark appears
+4. Success state
 
 ## 🏗️ Architecture
 
-CrabMusic uses a pipeline architecture with lock-free ring buffers for thread communication:
+CrabCrust is built on a modular architecture extracted from the [crabmusic](https://github.com/yourusername/crabmusic) project:
 
 ```
-┌─────────────────┐
-│  Audio Capture  │ (CPAL or WASAPI)
-│   (Thread 1)    │
-└────────┬────────┘
-         │ Ring Buffer
-         ▼
-┌─────────────────┐
-│ DSP Processing  │ (FFT, Frequency Analysis)
-│   (Main Loop)   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Visualization  │ (Sine Wave, Character Mapping)
-│   (Main Loop)   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│    Rendering    │ (Differential Terminal Updates)
-│   (Main Loop)   │
-└─────────────────┘
+crabcrust/
+├── braille/          # High-res Braille grid rendering
+├── rendering/        # Terminal management (Ratatui + Crossterm)
+├── animation/        # Animation engine & procedural animations
+│   ├── spinner.rs    # Rotating spinner
+│   ├── rocket.rs     # Rocket launch
+│   └── save.rs       # Floppy disk save
+├── executor/         # Command execution & output capture
+└── wrapper/          # CLI wrappers (git, cargo, etc.)
 ```
 
-**Key Design Decisions:**
-- **Lock-free ring buffer** for audio data transfer between threads
-- **Trait-based audio devices** for polymorphic capture (CPAL vs WASAPI)
-- **Differential rendering** to minimize terminal I/O
-- **Hot-reload configuration** for live parameter tuning
+### Key Components
+
+#### BrailleGrid
+High-resolution terminal graphics using Unicode Braille patterns:
+- Each terminal cell = 2×4 dots (8 possible dots)
+- 256 unique patterns per cell (U+2800 to U+28FF)
+- Full RGB color support per cell
+- Bresenham's line algorithm for smooth curves
+- Circle drawing with midpoint algorithm
+
+#### Animation Trait
+Simple trait for creating custom animations:
+```rust
+pub trait Animation {
+    fn update(&mut self, delta_time: Duration) -> bool;
+    fn render(&self, grid: &mut BrailleGrid);
+    fn name(&self) -> &str;
+}
+```
+
+#### Command Executor
+Spawns subprocesses, captures output, and preserves exit codes:
+```rust
+let executor = CommandExecutor::new("git", &["status"]);
+let result = executor.run()?;
+assert_eq!(result.exit_code, 0);
+```
+
+## 🔧 Creating Custom Animations
+
+Want to create your own animation? It's easy!
+
+```rust
+use crabcrust::{Animation, BrailleGrid, Color};
+use std::time::Duration;
+
+struct MyAnimation {
+    elapsed: Duration,
+}
+
+impl Animation for MyAnimation {
+    fn update(&mut self, delta_time: Duration) -> bool {
+        self.elapsed += delta_time;
+        self.elapsed < Duration::from_secs(2)  // Run for 2 seconds
+    }
+
+    fn render(&self, grid: &mut BrailleGrid) {
+        let center_x = grid.dot_width() / 2;
+        let center_y = grid.dot_height() / 2;
+
+        // Draw something cool!
+        grid.draw_circle(center_x, center_y, 20, Color::CYAN);
+    }
+
+    fn name(&self) -> &str {
+        "MyAnimation"
+    }
+}
+```
+
+## 🎯 Roadmap
+
+- [ ] Video file playback support (FFmpeg integration)
+- [ ] More animations (download, merge, error states)
+- [ ] Cargo wrapper (`crabcrust cargo build`)
+- [ ] NPM wrapper (`crabcrust npm install`)
+- [ ] Configuration file for custom mappings
+- [ ] Plugin system for community animations
+- [ ] Animation library/marketplace
+- [ ] Audio support (terminal beeps synced to animations)
 
 ## 🤝 Contributing
 
-Contributions are welcome! Areas for improvement:
-- Additional visualizer modes (spectrum analyzer, oscilloscope, waveform)
-- Color support and themes
-- Beat detection and rhythm analysis
-- More character sets and visual effects
-- Performance optimizations
+Contributions welcome! Here's how you can help:
 
-## 📄 License
+1. **Create new animations**: Add more procedural animations in `src/animation/`
+2. **Add CLI wrappers**: Support more tools (cargo, npm, docker, etc.)
+3. **Improve rendering**: Optimize BrailleGrid performance
+4. **Fix bugs**: Check the issues page
+5. **Add tests**: Expand test coverage
 
-MIT License - see LICENSE file for details
+## 📝 License
 
-## 🙏 Acknowledgments
+Licensed under either of:
 
-Built with these excellent Rust crates:
-- [cpal](https://github.com/RustAudio/cpal) - Cross-platform audio I/O
-- [wasapi](https://github.com/HEnquist/wasapi-rs) - Windows WASAPI bindings
-- [rustfft](https://github.com/ejmahler/RustFFT) - Fast Fourier Transform
-- [spectrum-analyzer](https://github.com/phip1611/spectrum-analyzer) - Frequency analysis
-- [ratatui](https://github.com/ratatui-org/ratatui) - Terminal UI framework
-- [crossterm](https://github.com/crossterm-rs/crossterm) - Terminal manipulation
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
+- MIT License ([LICENSE-MIT](LICENSE-MIT))
+
+at your option.
+
+## 🙏 Credits
+
+CrabCrust is built on technology extracted from [crabmusic](https://github.com/yourusername/crabmusic), a real-time terminal-based audio visualizer.
+
+The BrailleGrid rendering system was originally developed for audio visualization and has been adapted for general-purpose terminal animations.
+
+## 🎪 Philosophy
+
+Command-line tools don't have to be boring! We spend hours every day in the terminal - why not make it delightful?
+
+CrabCrust believes that:
+- **Feedback should be engaging**: Visual feedback makes commands more satisfying
+- **CLI can be beautiful**: Terminal graphics can be stunning with the right techniques
+- **Celebration matters**: Every `git push` is an achievement worth celebrating
+
+Made with 🦀 and ✨ by the Rust community.
 
 ---
 
-## 📊 Current Status
-
-**Version**: 0.1.0
-
-**Implemented:**
-- ✅ Unicode Braille renderer with full RGB color mode (Off → Grayscale → Full)
-- ✅ Image viewer: `--image`, drag/paste with `--image-drop`
-- ✅ Two-image morph (crossfade, ping‑pong): `--morph-a`, `--morph-b`, optional `--morph-duration`
-- ✅ Live controls: `[ / ]` speed, `r` reverse, `Space` pause, `l` letterbox, `c` color, `+/-` threshold, `a` auto-threshold, `x` maximize, `s` save
-- ✅ Live terminal-resize handling
-- ✅ Save Braille art to `<stem>.braille.txt`
-- ✅ Audio capture (mic + Windows WASAPI loopback) and audio output
-- ✅ Differential terminal updates + YAML config with hot‑reload
-- ✅ Video playback entrypoint (`--video`, feature‑gated)
-
-**Next up (roadmap):**
-- 🔁 Image playlists (3+ images) with selectable transitions
-- ✨ Additional transitions (noise dissolve, wipe/slide, radial)
-- 📊 Simpler, accurate spectrum analyzer (Spectrum 2) and beat‑reactive effects
-- 🧭 XY oscilloscope refinements
-
+**Star this repo if you love making terminals fun!** ⭐

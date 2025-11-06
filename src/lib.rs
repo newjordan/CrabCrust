@@ -1,32 +1,16 @@
-//! CrabMusic - Real-time ASCII music visualizer for terminal
-//!
-//! This library provides the core functionality for capturing system audio,
-//! processing it through DSP (FFT), and rendering audio-reactive visualizations
-//! in the terminal.
-//!
-//! # Architecture
-//!
-//! The library follows a pipeline architecture:
-//! - **Audio Capture**: Capture system audio using CPAL
-//! - **DSP Processing**: Extract audio parameters using FFT
-//! - **Visualization**: Generate visual representations from audio parameters
-//! - **Terminal Rendering**: Render visualizations to terminal using Ratatui
-//!
-//! # Examples
-//!
-//! ```no_run
-//! use crabmusic::audio::{AudioBuffer, AudioRingBuffer};
-//!
-//! let ring_buffer = AudioRingBuffer::new(10);
-//! let buffer = AudioBuffer::new(1024, 44100, 2);
-//! ring_buffer.push(buffer);
-//! ```
+// CrabCrust: Add arcade-style animations to your CLI tools 🦀✨
 
-// Public modules
-pub mod audio;
-pub mod config;
-pub mod dsp;
-pub mod effects;
-pub mod error;
+pub mod braille;
 pub mod rendering;
-pub mod visualization;
+pub mod animation;
+pub mod executor;
+pub mod wrapper;
+
+// Re-export commonly used types
+pub use braille::{BrailleGrid, Color};
+pub use rendering::TerminalRenderer;
+pub use animation::{Animation, AnimationPlayer, SpinnerAnimation, RocketAnimation, SaveAnimation};
+pub use executor::{CommandExecutor, CommandResult};
+
+/// CrabCrust result type
+pub type Result<T> = std::result::Result<T, anyhow::Error>;
