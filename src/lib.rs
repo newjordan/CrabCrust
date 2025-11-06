@@ -8,8 +8,8 @@ pub mod wrapper;
 
 // Re-export commonly used types
 pub use braille::{BrailleGrid, Color};
-pub use rendering::TerminalRenderer;
-pub use animation::{Animation, AnimationPlayer, SpinnerAnimation, RocketAnimation, SaveAnimation};
+pub use rendering::{RenderMode, TerminalRenderer};
+pub use animation::{Animation, AnimationPlayer, SpinnerAnimation, RocketAnimation, SaveAnimation, DownloadAnimation, MergeAnimation};
 pub use executor::{CommandExecutor, CommandResult};
 
 /// CrabCrust result type

@@ -3,13 +3,17 @@
 mod spinner;
 mod rocket;
 mod save;
+mod download;
+mod merge;
 
 pub use spinner::SpinnerAnimation;
 pub use rocket::RocketAnimation;
 pub use save::SaveAnimation;
+pub use download::DownloadAnimation;
+pub use merge::MergeAnimation;
 
 use crate::braille::BrailleGrid;
-use crate::rendering::TerminalRenderer;
+use crate::rendering::{RenderMode, TerminalRenderer};
 use anyhow::Result;
 use std::time::{Duration, Instant};
 
@@ -37,10 +41,20 @@ pub struct AnimationPlayer {
 }
 
 impl AnimationPlayer {
-    /// Create a new animation player
+    /// Create a new animation player with fullscreen mode
     pub fn new() -> Result<Self> {
+        Self::with_mode(RenderMode::Fullscreen)
+    }
+
+    /// Create an animation player with inline mode (for git commands)
+    pub fn inline(height: u16) -> Result<Self> {
+        Self::with_mode(RenderMode::Inline { height })
+    }
+
+    /// Create an animation player with a specific render mode
+    pub fn with_mode(mode: RenderMode) -> Result<Self> {
         Ok(Self {
-            renderer: TerminalRenderer::new()?,
+            renderer: TerminalRenderer::with_mode(mode)?,
         })
     }
 

@@ -1,7 +1,7 @@
 // Git-specific wrapper with custom animations
 
 use super::CliWrapper;
-use crate::animation::{RocketAnimation, SaveAnimation, SpinnerAnimation};
+use crate::animation::{DownloadAnimation, MergeAnimation, RocketAnimation, SaveAnimation, SpinnerAnimation};
 use crate::executor::{CommandExecutor, CommandResult};
 use anyhow::Result;
 use std::time::Duration;
@@ -30,6 +30,7 @@ impl GitWrapper {
             "commit" => self.run_commit(executor),
             "push" => self.run_push(executor),
             "pull" => self.run_pull(executor),
+            "merge" => self.run_merge(executor),
             _ => self.wrapper.run_with_default_animations(executor),
         }
     }
@@ -38,7 +39,8 @@ impl GitWrapper {
     fn run_commit(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
         use crate::animation::AnimationPlayer;
 
-        let mut player = AnimationPlayer::new()?;
+        // Use inline mode with 10 lines height
+        let mut player = AnimationPlayer::inline(10)?;
 
         // Show loading animation
         player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
@@ -51,9 +53,9 @@ impl GitWrapper {
             player.play(SaveAnimation::default())?;
         }
 
-        // Display output
-        player.renderer_mut().render_text(&result.combined_output())?;
-        std::thread::sleep(Duration::from_millis(500));
+        // Print output after animation completes
+        drop(player); // Clean up renderer
+        println!("{}", result.combined_output());
 
         Ok(result)
     }
@@ -62,7 +64,8 @@ impl GitWrapper {
     fn run_push(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
         use crate::animation::AnimationPlayer;
 
-        let mut player = AnimationPlayer::new()?;
+        // Use inline mode with 12 lines height for taller rocket
+        let mut player = AnimationPlayer::inline(12)?;
 
         // Show loading animation
         player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
@@ -75,17 +78,61 @@ impl GitWrapper {
             player.play(RocketAnimation::new(Duration::from_secs(2)))?;
         }
 
-        // Display output
-        player.renderer_mut().render_text(&result.combined_output())?;
-        std::thread::sleep(Duration::from_millis(500));
+        // Print output after animation completes
+        drop(player); // Clean up renderer
+        println!("{}", result.combined_output());
 
         Ok(result)
     }
 
     /// Run git pull with download animation
     fn run_pull(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
-        // For now use spinner, later we can add a download animation
-        self.wrapper.run_with_default_animations(executor)
+        use crate::animation::AnimationPlayer;
+
+        // Use inline mode with 10 lines height
+        let mut player = AnimationPlayer::inline(10)?;
+
+        // Show loading animation
+        player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
+
+        // Execute command
+        let result = executor.run()?;
+
+        // Show download animation on success
+        if result.success {
+            player.play(DownloadAnimation::default())?;
+        }
+
+        // Print output after animation completes
+        drop(player);
+        println!("{}", result.combined_output());
+
+        Ok(result)
+    }
+
+    /// Run git merge with merge animation
+    fn run_merge(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
+        use crate::animation::AnimationPlayer;
+
+        // Use inline mode with 10 lines height
+        let mut player = AnimationPlayer::inline(10)?;
+
+        // Show loading animation
+        player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
+
+        // Execute command
+        let result = executor.run()?;
+
+        // Show merge animation on success
+        if result.success {
+            player.play(MergeAnimation::default())?;
+        }
+
+        // Print output after animation completes
+        drop(player);
+        println!("{}", result.combined_output());
+
+        Ok(result)
     }
 
     /// Execute git command directly (for convenience)

@@ -2,9 +2,8 @@
 use crate::braille::BrailleGrid;
 use anyhow::Result;
 use crossterm::{
-    execute,
+    cursor, execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-    cursor::{Hide, Show},
 };
 use ratatui::{
     backend::CrosstermBackend,
@@ -14,48 +13,104 @@ use ratatui::{
     widgets::Paragraph,
     Terminal,
 };
-use std::io::{self, Stdout};
+use std::io::{self, Stdout, Write};
+
+/// Rendering mode for animations
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RenderMode {
+    /// Fullscreen mode - takes over entire terminal (for demos)
+    Fullscreen,
+    /// Inline mode - renders in a fixed-height frame without clearing history
+    Inline { height: u16 },
+}
+
+impl Default for RenderMode {
+    fn default() -> Self {
+        Self::Fullscreen
+    }
+}
 
 /// Terminal renderer with panic-safe cleanup
 pub struct TerminalRenderer {
     terminal: Terminal<CrosstermBackend<Stdout>>,
+    mode: RenderMode,
     _cleanup: TerminalCleanup,
 }
 
 /// RAII guard for terminal cleanup
-struct TerminalCleanup;
+struct TerminalCleanup {
+    mode: RenderMode,
+}
 
 impl Drop for TerminalCleanup {
     fn drop(&mut self) {
-        let _ = disable_raw_mode();
-        let _ = execute!(
-            io::stdout(),
-            LeaveAlternateScreen,
-            Show
-        );
+        match self.mode {
+            RenderMode::Fullscreen => {
+                let _ = disable_raw_mode();
+                let _ = execute!(
+                    io::stdout(),
+                    LeaveAlternateScreen,
+                    cursor::Show
+                );
+            }
+            RenderMode::Inline { .. } => {
+                // For inline mode, just show cursor
+                let _ = execute!(io::stdout(), cursor::Show);
+            }
+        }
     }
 }
 
 impl TerminalRenderer {
-    /// Create a new terminal renderer
+    /// Create a new terminal renderer with default fullscreen mode
     pub fn new() -> Result<Self> {
-        enable_raw_mode()?;
-        let mut stdout = io::stdout();
-        execute!(stdout, EnterAlternateScreen, Hide)?;
+        Self::with_mode(RenderMode::Fullscreen)
+    }
 
+    /// Create a terminal renderer with specified mode
+    pub fn with_mode(mode: RenderMode) -> Result<Self> {
+        let stdout = io::stdout();
         let backend = CrosstermBackend::new(stdout);
         let terminal = Terminal::new(backend)?;
 
+        match mode {
+            RenderMode::Fullscreen => {
+                enable_raw_mode()?;
+                execute!(io::stdout(), EnterAlternateScreen, cursor::Hide)?;
+            }
+            RenderMode::Inline { height } => {
+                // For inline mode, reserve space by printing newlines
+                let mut stdout = io::stdout();
+                execute!(stdout, cursor::Hide)?;
+                // Print empty lines to reserve space
+                for _ in 0..height {
+                    writeln!(stdout)?;
+                }
+                // Move cursor back up
+                execute!(stdout, cursor::MoveUp(height))?;
+                stdout.flush()?;
+            }
+        }
+
         Ok(Self {
             terminal,
-            _cleanup: TerminalCleanup,
+            mode,
+            _cleanup: TerminalCleanup { mode },
         })
+    }
+
+    /// Get the rendering mode
+    pub fn mode(&self) -> RenderMode {
+        self.mode
     }
 
     /// Get terminal size (width, height)
     pub fn size(&self) -> Result<(u16, u16)> {
         let size = self.terminal.size()?;
-        Ok((size.width, size.height))
+        match self.mode {
+            RenderMode::Fullscreen => Ok((size.width, size.height)),
+            RenderMode::Inline { height } => Ok((size.width, height)),
+        }
     }
 
     /// Clear the terminal

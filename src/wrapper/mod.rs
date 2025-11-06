@@ -8,16 +8,12 @@ use anyhow::Result;
 use std::time::Duration;
 
 /// Wrapper for CLI commands with animations
-pub struct CliWrapper {
-    player: AnimationPlayer,
-}
+pub struct CliWrapper;
 
 impl CliWrapper {
     /// Create a new CLI wrapper
     pub fn new() -> Result<Self> {
-        Ok(Self {
-            player: AnimationPlayer::new()?,
-        })
+        Ok(Self)
     }
 
     /// Run a command with default animations based on success/failure
@@ -25,25 +21,25 @@ impl CliWrapper {
         &mut self,
         executor: CommandExecutor,
     ) -> Result<CommandResult> {
+        // Create inline player with 8 lines
+        let mut player = AnimationPlayer::inline(8)?;
+
         // Show loading animation while command runs
-        self.player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
+        player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
 
         // Execute command
         let result = executor.run()?;
 
         // Show success or error animation
         if result.success {
-            self.player.play(SaveAnimation::default())?;
+            player.play(SaveAnimation::default())?;
         } else {
-            self.player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
+            player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
         }
 
-        // Display output
-        self.player
-            .renderer_mut()
-            .render_text(&result.combined_output())?;
-
-        std::thread::sleep(Duration::from_millis(500));
+        // Print output after animation
+        drop(player);
+        println!("{}", result.combined_output());
 
         Ok(result)
     }
