@@ -4,7 +4,7 @@ use anyhow::Result;
 use crossterm::{
     cursor, execute, queue,
     style::{Color, Print, ResetColor, SetForegroundColor},
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{self, disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{
     backend::CrosstermBackend,
@@ -42,6 +42,7 @@ pub struct TerminalRenderer {
 /// RAII guard for terminal cleanup
 struct TerminalCleanup {
     mode: RenderMode,
+    inline_start_row: u16,
 }
 
 impl Drop for TerminalCleanup {
@@ -55,11 +56,34 @@ impl Drop for TerminalCleanup {
                     cursor::Show
                 );
             }
-            RenderMode::Inline { .. } => {
-                // For inline mode, just show cursor
+            RenderMode::Inline { height } => {
+                // Clear the inline animation area
+                let _ = Self::clear_inline_area(self.inline_start_row, height);
                 let _ = execute!(io::stdout(), cursor::Show);
             }
         }
+    }
+}
+
+impl TerminalCleanup {
+    /// Clear the inline animation area
+    fn clear_inline_area(start_row: u16, height: u16) -> Result<()> {
+        let mut stdout = io::stdout();
+
+        // Move to start of animation area
+        execute!(stdout, cursor::MoveTo(0, start_row))?;
+
+        // Clear each line
+        for _ in 0..height {
+            queue!(stdout, crossterm::terminal::Clear(crossterm::terminal::ClearType::CurrentLine))?;
+            queue!(stdout, cursor::MoveDown(1))?;
+        }
+
+        // Move cursor back to start position
+        execute!(stdout, cursor::MoveTo(0, start_row))?;
+
+        stdout.flush()?;
+        Ok(())
     }
 }
 
@@ -84,7 +108,7 @@ impl TerminalRenderer {
                     terminal: Some(terminal),
                     mode,
                     inline_start_row: 0,
-                    _cleanup: TerminalCleanup { mode },
+                    _cleanup: TerminalCleanup { mode, inline_start_row: 0 },
                 })
             }
             RenderMode::Inline { height } => {
@@ -106,7 +130,7 @@ impl TerminalRenderer {
                     terminal: None,
                     mode,
                     inline_start_row: start_row,
-                    _cleanup: TerminalCleanup { mode },
+                    _cleanup: TerminalCleanup { mode, inline_start_row: start_row },
                 })
             }
         }
@@ -135,6 +159,14 @@ impl TerminalRenderer {
     pub fn clear(&mut self) -> Result<()> {
         if let Some(terminal) = &mut self.terminal {
             terminal.clear()?;
+        }
+        Ok(())
+    }
+
+    /// Manually clear the inline animation area (usually automatic on drop)
+    pub fn clear_inline_frame(&self) -> Result<()> {
+        if let RenderMode::Inline { height } = self.mode {
+            TerminalCleanup::clear_inline_area(self.inline_start_row, height)?;
         }
         Ok(())
     }
