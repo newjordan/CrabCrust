@@ -73,13 +73,14 @@ impl TerminalCleanup {
         // Move to start of animation area
         execute!(stdout, cursor::MoveTo(0, start_row))?;
 
-        // Clear each line
-        for _ in 0..height {
+        // Clear each line by overwriting with spaces, then move down
+        for i in 0..height {
+            execute!(stdout, cursor::MoveTo(0, start_row + i))?;
             queue!(stdout, crossterm::terminal::Clear(crossterm::terminal::ClearType::CurrentLine))?;
-            queue!(stdout, cursor::MoveDown(1))?;
         }
 
-        // Move cursor back to start position
+        // Move cursor back to the start position
+        // This is where new content should appear (like command output)
         execute!(stdout, cursor::MoveTo(0, start_row))?;
 
         stdout.flush()?;
@@ -116,21 +117,26 @@ impl TerminalRenderer {
                 // Just reserve space in the current terminal
                 let mut stdout = io::stdout();
 
-                // Save current cursor position
-                let (_, start_row) = cursor::position()?;
-
                 // Print empty lines to reserve space
+                // This will cause scrolling if we're near the bottom
                 for _ in 0..height {
                     writeln!(stdout)?;
                 }
+
+                // Move cursor back up to the start of the animation area
+                // This ensures the animation is visible even if we started at the bottom
+                execute!(stdout, cursor::MoveUp(height))?;
+
+                // Get the position - this is where the animation will render
+                let (_, animation_start_row) = cursor::position()?;
 
                 stdout.flush()?;
 
                 Ok(Self {
                     terminal: None,
                     mode,
-                    inline_start_row: start_row,
-                    _cleanup: TerminalCleanup { mode, inline_start_row: start_row },
+                    inline_start_row: animation_start_row,
+                    _cleanup: TerminalCleanup { mode, inline_start_row: animation_start_row },
                 })
             }
         }
