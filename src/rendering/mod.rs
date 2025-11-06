@@ -1,17 +1,17 @@
 // Terminal rendering module
-use crate::braille::{BrailleGrid, Color};
+use crate::braille::BrailleGrid;
 use anyhow::Result;
 use crossterm::{
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, Clear, ClearType},
-    cursor::{Hide, Show, MoveTo},
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    cursor::{Hide, Show},
 };
 use ratatui::{
     backend::CrosstermBackend,
     layout::Rect,
     style::Style,
     text::{Line, Span},
-    widgets::{Block, Paragraph},
+    widgets::Paragraph,
     Terminal,
 };
 use std::io::{self, Stdout};
