@@ -21,8 +21,8 @@ impl CliWrapper {
         &mut self,
         executor: CommandExecutor,
     ) -> Result<CommandResult> {
-        // Create inline player with 8 lines
-        let mut player = AnimationPlayer::inline(8)?;
+        // Create inline player with 1/3 terminal height
+        let mut player = AnimationPlayer::inline_auto()?;
 
         // Show loading animation while command runs
         player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;

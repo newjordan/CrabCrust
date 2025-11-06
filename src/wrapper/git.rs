@@ -43,8 +43,8 @@ impl GitWrapper {
     fn run_commit(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
         use crate::animation::AnimationPlayer;
 
-        // Use inline mode with 12 lines height
-        let mut player = AnimationPlayer::inline(12)?;
+        // Use inline mode with 1/3 terminal height for proper visibility
+        let mut player = AnimationPlayer::inline_auto()?;
 
         // Show loading animation
         player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
@@ -73,8 +73,8 @@ impl GitWrapper {
     fn run_push(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
         use crate::animation::AnimationPlayer;
 
-        // Use inline mode with 12 lines height
-        let mut player = AnimationPlayer::inline(12)?;
+        // Use inline mode with 1/3 terminal height for epic animations
+        let mut player = AnimationPlayer::inline_auto()?;
 
         // Show loading animation
         player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
@@ -104,8 +104,8 @@ impl GitWrapper {
     fn run_pull(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
         use crate::animation::AnimationPlayer;
 
-        // Use inline mode with 10 lines height
-        let mut player = AnimationPlayer::inline(10)?;
+        // Use inline mode with 1/3 terminal height
+        let mut player = AnimationPlayer::inline_auto()?;
 
         // Show loading animation
         player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
@@ -133,8 +133,8 @@ impl GitWrapper {
     fn run_merge(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
         use crate::animation::AnimationPlayer;
 
-        // Use inline mode with 10 lines height
-        let mut player = AnimationPlayer::inline(10)?;
+        // Use inline mode with 1/3 terminal height
+        let mut player = AnimationPlayer::inline_auto()?;
 
         // Show loading animation
         player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;

@@ -61,6 +61,17 @@ impl AnimationPlayer {
         Self::with_mode(RenderMode::Inline { height })
     }
 
+    /// Create an animation player with inline mode using optimal height
+    /// Automatically uses 1/3 of terminal height (min 15, max 40 lines)
+    pub fn inline_auto() -> Result<Self> {
+        let (_, terminal_height) = crossterm::terminal::size()?;
+
+        // Use 1/3 of terminal height, with reasonable bounds
+        let height = (terminal_height / 3).max(15).min(40);
+
+        Self::with_mode(RenderMode::Inline { height })
+    }
+
     /// Create an animation player with a specific render mode
     pub fn with_mode(mode: RenderMode) -> Result<Self> {
         Ok(Self {

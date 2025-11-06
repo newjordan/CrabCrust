@@ -60,7 +60,7 @@ fn main() -> Result<()> {
                 AnimationPlayer::new()? // Fullscreen mode
             } else {
                 println!("💡 Tip: Add --fullscreen flag for immersive fullscreen mode\n");
-                AnimationPlayer::inline(15)? // Inline mode with 15 lines
+                AnimationPlayer::inline_auto()? // Inline mode with 1/3 terminal height
             };
 
             match animation.as_str() {
