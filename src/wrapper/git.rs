@@ -1,10 +1,14 @@
 // Git-specific wrapper with custom animations
 
 use super::CliWrapper;
-use crate::animation::{DownloadAnimation, MergeAnimation, RocketAnimation, SaveAnimation, SpinnerAnimation};
+use crate::animation::{
+    BabyAnnouncementAnimation, ConfettiAnimation, DownloadAnimation, FireworksAnimation,
+    MergeAnimation, RabbitAnimation, RocketAnimation, SaveAnimation, SpinnerAnimation,
+    TrophyAnimation,
+};
 use crate::executor::{CommandExecutor, CommandResult};
 use anyhow::Result;
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 /// Git command wrapper with themed animations
 pub struct GitWrapper {
@@ -35,36 +39,11 @@ impl GitWrapper {
         }
     }
 
-    /// Run git commit with save animation
+    /// Run git commit with celebration animation
     fn run_commit(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
         use crate::animation::AnimationPlayer;
 
-        // Use inline mode with 10 lines height
-        let mut player = AnimationPlayer::inline(10)?;
-
-        // Show loading animation
-        player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
-
-        // Execute command
-        let result = executor.run()?;
-
-        // Show success or error animation
-        if result.success {
-            player.play(SaveAnimation::default())?;
-        }
-
-        // Print output after animation completes
-        drop(player); // Clean up renderer
-        println!("{}", result.combined_output());
-
-        Ok(result)
-    }
-
-    /// Run git push with rocket animation
-    fn run_push(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
-        use crate::animation::AnimationPlayer;
-
-        // Use inline mode with 12 lines height for taller rocket
+        // Use inline mode with 12 lines height
         let mut player = AnimationPlayer::inline(12)?;
 
         // Show loading animation
@@ -73,9 +52,14 @@ impl GitWrapper {
         // Execute command
         let result = executor.run()?;
 
-        // Show success or error animation
+        // Show success animation - CONGRATULATIONS, YOU'RE THE FATHER!
         if result.success {
-            player.play(RocketAnimation::new(Duration::from_secs(2)))?;
+            let random = Self::random_choice(3);
+            match random {
+                0 => player.play(BabyAnnouncementAnimation::default())?,
+                1 => player.play(ConfettiAnimation::default())?,
+                _ => player.play(SaveAnimation::default())?,
+            }
         }
 
         // Print output after animation completes
@@ -85,7 +69,38 @@ impl GitWrapper {
         Ok(result)
     }
 
-    /// Run git pull with download animation
+    /// Run git push with epic celebration animation
+    fn run_push(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
+        use crate::animation::AnimationPlayer;
+
+        // Use inline mode with 12 lines height
+        let mut player = AnimationPlayer::inline(12)?;
+
+        // Show loading animation
+        player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
+
+        // Execute command
+        let result = executor.run()?;
+
+        // Show success animation - EPIC CELEBRATION!
+        if result.success {
+            let random = Self::random_choice(4);
+            match random {
+                0 => player.play(RocketAnimation::new(Duration::from_secs(2)))?,
+                1 => player.play(FireworksAnimation::default())?,
+                2 => player.play(TrophyAnimation::default())?,
+                _ => player.play(ConfettiAnimation::default())?,
+            }
+        }
+
+        // Print output after animation completes
+        drop(player); // Clean up renderer
+        println!("{}", result.combined_output());
+
+        Ok(result)
+    }
+
+    /// Run git pull with download/rabbit animation
     fn run_pull(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
         use crate::animation::AnimationPlayer;
 
@@ -98,9 +113,13 @@ impl GitWrapper {
         // Execute command
         let result = executor.run()?;
 
-        // Show download animation on success
+        // Show download or rabbit animation on success
         if result.success {
-            player.play(DownloadAnimation::default())?;
+            let random = Self::random_choice(2);
+            match random {
+                0 => player.play(DownloadAnimation::default())?,
+                _ => player.play(RabbitAnimation::default())?, // "I'm late! I'm late!"
+            }
         }
 
         // Print output after animation completes
@@ -133,6 +152,16 @@ impl GitWrapper {
         println!("{}", result.combined_output());
 
         Ok(result)
+    }
+
+    /// Get a pseudo-random choice from 0 to max (exclusive)
+    fn random_choice(max: usize) -> usize {
+        // Simple pseudo-random based on system time
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        (now as usize) % max
     }
 
     /// Execute git command directly (for convenience)

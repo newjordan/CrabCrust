@@ -3,7 +3,11 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use crabcrust::wrapper::git::GitWrapper;
-use crabcrust::{AnimationPlayer, RocketAnimation, SaveAnimation, SpinnerAnimation, DownloadAnimation, MergeAnimation};
+use crabcrust::{
+    AnimationPlayer, BabyAnnouncementAnimation, ConfettiAnimation, DownloadAnimation,
+    FireworksAnimation, MergeAnimation, RabbitAnimation, RocketAnimation, SaveAnimation,
+    SpinnerAnimation, TrophyAnimation,
+};
 use std::time::Duration;
 
 #[derive(Parser)]
@@ -26,7 +30,7 @@ enum Commands {
 
     /// Test animations
     Demo {
-        /// Which animation to demo: spinner, rocket, save, download, merge, all
+        /// Which animation to demo: spinner, rocket, save, download, merge, rabbit, fireworks, baby, confetti, trophy, all
         #[arg(default_value = "all")]
         animation: String,
     },
@@ -69,6 +73,26 @@ fn main() -> Result<()> {
                     println!("🔀 Merge Animation Demo");
                     player.play(MergeAnimation::default())?;
                 }
+                "rabbit" => {
+                    println!("🐰 White Rabbit Animation Demo - I'm late! I'm late!");
+                    player.play(RabbitAnimation::default())?;
+                }
+                "fireworks" => {
+                    println!("🎆 Fireworks Animation Demo");
+                    player.play(FireworksAnimation::default())?;
+                }
+                "baby" => {
+                    println!("👶 Baby Announcement Demo - Congratulations, you're the father!");
+                    player.play(BabyAnnouncementAnimation::default())?;
+                }
+                "confetti" => {
+                    println!("🎊 Confetti Animation Demo");
+                    player.play(ConfettiAnimation::default())?;
+                }
+                "trophy" => {
+                    println!("🏆 Trophy Animation Demo - You're a champion!");
+                    player.play(TrophyAnimation::default())?;
+                }
                 "all" | _ => {
                     println!("🎮 Running all animations...\n");
 
@@ -90,8 +114,28 @@ fn main() -> Result<()> {
 
                     println!("\n5. Merge Animation");
                     player.play(MergeAnimation::default())?;
+                    std::thread::sleep(Duration::from_millis(500));
 
-                    println!("\n✨ Demo complete!");
+                    println!("\n6. White Rabbit - I'm late!");
+                    player.play(RabbitAnimation::default())?;
+                    std::thread::sleep(Duration::from_millis(500));
+
+                    println!("\n7. Fireworks Celebration!");
+                    player.play(FireworksAnimation::default())?;
+                    std::thread::sleep(Duration::from_millis(500));
+
+                    println!("\n8. Baby Announcement - It's a Commit!");
+                    player.play(BabyAnnouncementAnimation::default())?;
+                    std::thread::sleep(Duration::from_millis(500));
+
+                    println!("\n9. Confetti Party!");
+                    player.play(ConfettiAnimation::default())?;
+                    std::thread::sleep(Duration::from_millis(500));
+
+                    println!("\n10. Trophy - You're a Winner!");
+                    player.play(TrophyAnimation::default())?;
+
+                    println!("\n✨ Demo complete! What a show!");
                 }
             }
         }

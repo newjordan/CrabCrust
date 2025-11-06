@@ -5,12 +5,22 @@ mod rocket;
 mod save;
 mod download;
 mod merge;
+mod rabbit;
+mod fireworks;
+mod baby;
+mod confetti;
+mod trophy;
 
 pub use spinner::SpinnerAnimation;
 pub use rocket::RocketAnimation;
 pub use save::SaveAnimation;
 pub use download::DownloadAnimation;
 pub use merge::MergeAnimation;
+pub use rabbit::RabbitAnimation;
+pub use fireworks::FireworksAnimation;
+pub use baby::BabyAnnouncementAnimation;
+pub use confetti::ConfettiAnimation;
+pub use trophy::TrophyAnimation;
 
 use crate::braille::BrailleGrid;
 use crate::rendering::{RenderMode, TerminalRenderer};
