@@ -33,6 +33,10 @@ enum Commands {
         /// Which animation to demo: spinner, rocket, save, download, merge, rabbit, fireworks, baby, confetti, trophy, all
         #[arg(default_value = "all")]
         animation: String,
+
+        /// Use fullscreen mode instead of inline (clears terminal)
+        #[arg(short, long)]
+        fullscreen: bool,
     },
 }
 
@@ -49,8 +53,15 @@ fn main() -> Result<()> {
             std::process::exit(result.exit_code);
         }
 
-        Commands::Demo { animation } => {
-            let mut player = AnimationPlayer::new()?;
+        Commands::Demo { animation, fullscreen } => {
+            // Use inline mode by default for non-disruptive demos
+            // Only use fullscreen if explicitly requested
+            let mut player = if fullscreen {
+                AnimationPlayer::new()? // Fullscreen mode
+            } else {
+                println!("💡 Tip: Add --fullscreen flag for immersive fullscreen mode\n");
+                AnimationPlayer::inline(15)? // Inline mode with 15 lines
+            };
 
             match animation.as_str() {
                 "spinner" => {
