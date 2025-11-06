@@ -2,7 +2,8 @@
 use crate::braille::BrailleGrid;
 use anyhow::Result;
 use crossterm::{
-    cursor, execute,
+    cursor, execute, queue,
+    style::{Color, Print, ResetColor, SetForegroundColor},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{
@@ -32,8 +33,9 @@ impl Default for RenderMode {
 
 /// Terminal renderer with panic-safe cleanup
 pub struct TerminalRenderer {
-    terminal: Terminal<CrosstermBackend<Stdout>>,
+    terminal: Option<Terminal<CrosstermBackend<Stdout>>>,
     mode: RenderMode,
+    inline_start_row: u16,
     _cleanup: TerminalCleanup,
 }
 
@@ -69,34 +71,45 @@ impl TerminalRenderer {
 
     /// Create a terminal renderer with specified mode
     pub fn with_mode(mode: RenderMode) -> Result<Self> {
-        let stdout = io::stdout();
-        let backend = CrosstermBackend::new(stdout);
-        let terminal = Terminal::new(backend)?;
-
         match mode {
             RenderMode::Fullscreen => {
                 enable_raw_mode()?;
                 execute!(io::stdout(), EnterAlternateScreen, cursor::Hide)?;
+
+                let stdout = io::stdout();
+                let backend = CrosstermBackend::new(stdout);
+                let terminal = Terminal::new(backend)?;
+
+                Ok(Self {
+                    terminal: Some(terminal),
+                    mode,
+                    inline_start_row: 0,
+                    _cleanup: TerminalCleanup { mode },
+                })
             }
             RenderMode::Inline { height } => {
-                // For inline mode, reserve space by printing newlines
+                // For inline mode, don't use ratatui's Terminal at all
+                // Just reserve space in the current terminal
                 let mut stdout = io::stdout();
-                execute!(stdout, cursor::Hide)?;
+
+                // Save current cursor position
+                let (_, start_row) = cursor::position()?;
+
                 // Print empty lines to reserve space
                 for _ in 0..height {
                     writeln!(stdout)?;
                 }
-                // Move cursor back up
-                execute!(stdout, cursor::MoveUp(height))?;
+
                 stdout.flush()?;
+
+                Ok(Self {
+                    terminal: None,
+                    mode,
+                    inline_start_row: start_row,
+                    _cleanup: TerminalCleanup { mode },
+                })
             }
         }
-
-        Ok(Self {
-            terminal,
-            mode,
-            _cleanup: TerminalCleanup { mode },
-        })
     }
 
     /// Get the rendering mode
@@ -106,22 +119,38 @@ impl TerminalRenderer {
 
     /// Get terminal size (width, height)
     pub fn size(&self) -> Result<(u16, u16)> {
-        let size = self.terminal.size()?;
         match self.mode {
-            RenderMode::Fullscreen => Ok((size.width, size.height)),
-            RenderMode::Inline { height } => Ok((size.width, height)),
+            RenderMode::Fullscreen => {
+                let size = self.terminal.as_ref().unwrap().size()?;
+                Ok((size.width, size.height))
+            }
+            RenderMode::Inline { height } => {
+                let (width, _) = crossterm::terminal::size()?;
+                Ok((width, height))
+            }
         }
     }
 
     /// Clear the terminal
     pub fn clear(&mut self) -> Result<()> {
-        self.terminal.clear()?;
+        if let Some(terminal) = &mut self.terminal {
+            terminal.clear()?;
+        }
         Ok(())
     }
 
     /// Render a BrailleGrid to the terminal
     pub fn render_braille(&mut self, grid: &BrailleGrid) -> Result<()> {
-        self.terminal.draw(|frame| {
+        match self.mode {
+            RenderMode::Fullscreen => self.render_braille_fullscreen(grid),
+            RenderMode::Inline { .. } => self.render_braille_inline(grid),
+        }
+    }
+
+    /// Render braille in fullscreen mode (using ratatui)
+    fn render_braille_fullscreen(&mut self, grid: &BrailleGrid) -> Result<()> {
+        let terminal = self.terminal.as_mut().unwrap();
+        terminal.draw(|frame| {
             let area = frame.area();
 
             // Build lines from braille grid
@@ -150,19 +179,63 @@ impl TerminalRenderer {
         Ok(())
     }
 
-    /// Render text lines to the terminal
-    pub fn render_text(&mut self, text: &str) -> Result<()> {
-        self.terminal.draw(|frame| {
-            let area = frame.area();
-            let paragraph = Paragraph::new(text);
-            frame.render_widget(paragraph, area);
-        })?;
+    /// Render braille in inline mode (direct stdout writing)
+    fn render_braille_inline(&mut self, grid: &BrailleGrid) -> Result<()> {
+        let mut stdout = io::stdout();
+
+        // Move to start position
+        execute!(stdout, cursor::MoveTo(0, self.inline_start_row))?;
+
+        // Render each line of the grid directly
+        for y in 0..grid.height() {
+            // Position at the start of the line
+            queue!(stdout, cursor::MoveTo(0, self.inline_start_row + y as u16))?;
+
+            for x in 0..grid.width() {
+                let ch = grid.get_char(x, y);
+                let color = grid.get_color(x, y);
+
+                if let Some(c) = color {
+                    queue!(
+                        stdout,
+                        SetForegroundColor(Color::Rgb {
+                            r: c.r,
+                            g: c.g,
+                            b: c.b
+                        }),
+                        Print(ch),
+                        ResetColor
+                    )?;
+                } else {
+                    queue!(stdout, Print(ch))?;
+                }
+            }
+        }
+
+        // Move cursor to after the animation area
+        let (_, height) = self.size()?;
+        execute!(stdout, cursor::MoveTo(0, self.inline_start_row + height))?;
+
+        stdout.flush()?;
         Ok(())
     }
 
-    /// Render BrailleGrid with text below it
+    /// Render text lines to the terminal (fullscreen mode only)
+    pub fn render_text(&mut self, text: &str) -> Result<()> {
+        if let Some(terminal) = &mut self.terminal {
+            terminal.draw(|frame| {
+                let area = frame.area();
+                let paragraph = Paragraph::new(text);
+                frame.render_widget(paragraph, area);
+            })?;
+        }
+        Ok(())
+    }
+
+    /// Render BrailleGrid with text below it (fullscreen mode only)
     pub fn render_braille_with_text(&mut self, grid: &BrailleGrid, text: &str) -> Result<()> {
-        self.terminal.draw(|frame| {
+        if let Some(terminal) = &mut self.terminal {
+            terminal.draw(|frame| {
             let area = frame.area();
 
             // Split area: top for braille, bottom for text
@@ -208,7 +281,8 @@ impl TerminalRenderer {
 
             let text_paragraph = Paragraph::new(text);
             frame.render_widget(text_paragraph, text_area);
-        })?;
+            })?;
+        }
 
         Ok(())
     }
