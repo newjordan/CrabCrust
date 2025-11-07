@@ -6,8 +6,7 @@ use crabcrust::wrapper::git::GitWrapper;
 use crabcrust::{
     AnimationPlayer, BabyAnnouncementAnimation, ConfettiAnimation, DownloadAnimation,
     FireworksAnimation, MergeAnimation, RabbitAnimation, RocketAnimation, SaveAnimation,
-    SpinnerAnimation, TrophyAnimation, JackpotAnimation, MultiballAnimation, ExtraBallAnimation,
-    BonusMultiplierAnimation,
+    SpinnerAnimation, TrophyAnimation,
 };
 
 #[cfg(feature = "video")]
@@ -37,7 +36,7 @@ enum Commands {
 
     /// Test animations
     Demo {
-        /// Which animation to demo: spinner, rocket, save, download, merge, rabbit, fireworks, baby, confetti, trophy, jackpot, multiball, extraball, bonus, pinball, all
+        /// Which animation to demo: spinner, rocket, save, download, merge, rabbit, fireworks, baby, confetti, trophy, all
         #[arg(default_value = "all")]
         animation: String,
 
@@ -142,42 +141,6 @@ fn main() -> Result<()> {
                     println!("🏆 Trophy Animation Demo - You're a champion!");
                     player.play(TrophyAnimation::default())?;
                 }
-                "jackpot" => {
-                    println!("🎰 Jackpot Animation Demo - You hit the jackpot!");
-                    player.play(JackpotAnimation::default())?;
-                }
-                "multiball" => {
-                    println!("⚪ Multiball Animation Demo - MULTIBALL!");
-                    player.play(MultiballAnimation::default())?;
-                }
-                "extraball" => {
-                    println!("✨ Extra Ball Animation Demo - FREE BALL!");
-                    player.play(ExtraBallAnimation::default())?;
-                }
-                "bonus" => {
-                    println!("🔢 Bonus Multiplier Animation Demo - 2X... 3X... 4X...");
-                    player.play(BonusMultiplierAnimation::default())?;
-                }
-                "pinball" => {
-                    println!("🎰 Running all pinball animations...\n");
-
-                    println!("1. JACKPOT!");
-                    player.play(JackpotAnimation::default())?;
-                    std::thread::sleep(Duration::from_millis(500));
-
-                    println!("\n2. MULTIBALL!");
-                    player.play(MultiballAnimation::default())?;
-                    std::thread::sleep(Duration::from_millis(500));
-
-                    println!("\n3. EXTRA BALL!");
-                    player.play(ExtraBallAnimation::default())?;
-                    std::thread::sleep(Duration::from_millis(500));
-
-                    println!("\n4. BONUS MULTIPLIER!");
-                    player.play(BonusMultiplierAnimation::default())?;
-
-                    println!("\n🎰 Pinball demos complete!");
-                }
                 "all" | _ => {
                     println!("🎮 Running all animations...\n");
 
@@ -219,24 +182,8 @@ fn main() -> Result<()> {
 
                     println!("\n10. Trophy - You're a Winner!");
                     player.play(TrophyAnimation::default())?;
-                    std::thread::sleep(Duration::from_millis(500));
 
-                    println!("\n11. Jackpot - JACKPOT!");
-                    player.play(JackpotAnimation::default())?;
-                    std::thread::sleep(Duration::from_millis(500));
-
-                    println!("\n12. Multiball - MULTIBALL!");
-                    player.play(MultiballAnimation::default())?;
-                    std::thread::sleep(Duration::from_millis(500));
-
-                    println!("\n13. Extra Ball - FREE BALL!");
-                    player.play(ExtraBallAnimation::default())?;
-                    std::thread::sleep(Duration::from_millis(500));
-
-                    println!("\n14. Bonus Multiplier - 2X... 3X... 4X!");
-                    player.play(BonusMultiplierAnimation::default())?;
-
-                    println!("\n🎰✨ Demo complete! What a show!");
+                    println!("\n✨ Demo complete! What a show!");
                 }
             }
         }

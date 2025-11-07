@@ -17,7 +17,7 @@ pub use animation::{
     Animation, AnimationPlayer,
     SpinnerAnimation, RocketAnimation, SaveAnimation, DownloadAnimation, MergeAnimation,
     RabbitAnimation, FireworksAnimation, BabyAnnouncementAnimation, ConfettiAnimation, TrophyAnimation,
-    FrameBasedAnimation, JackpotAnimation, MultiballAnimation, ExtraBallAnimation, BonusMultiplierAnimation
+    FrameBasedAnimation
 };
 pub use executor::{CommandExecutor, CommandResult};
 
