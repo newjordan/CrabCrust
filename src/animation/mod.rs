@@ -11,6 +11,10 @@ mod baby;
 mod confetti;
 mod trophy;
 mod framebased;
+mod jackpot;
+mod multiball;
+mod extraball;
+mod bonusmultiplier;
 
 pub use spinner::SpinnerAnimation;
 pub use rocket::RocketAnimation;
@@ -23,6 +27,10 @@ pub use baby::BabyAnnouncementAnimation;
 pub use confetti::ConfettiAnimation;
 pub use trophy::TrophyAnimation;
 pub use framebased::FrameBasedAnimation;
+pub use jackpot::JackpotAnimation;
+pub use multiball::MultiballAnimation;
+pub use extraball::ExtraBallAnimation;
+pub use bonusmultiplier::BonusMultiplierAnimation;
 
 use crate::braille::BrailleGrid;
 use crate::rendering::{RenderMode, TerminalRenderer};
