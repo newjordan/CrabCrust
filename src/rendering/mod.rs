@@ -4,7 +4,7 @@ use anyhow::Result;
 use crossterm::{
     cursor, execute, queue,
     style::{Color, Print, ResetColor, SetForegroundColor},
-    terminal::{self, disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{
     backend::CrosstermBackend,

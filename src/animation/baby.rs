@@ -221,7 +221,7 @@ impl Animation for BabyAnnouncementAnimation {
             ];
 
             for (i, color) in balloon_colors.iter().enumerate() {
-                let balloon_x = (center_x as i32 + 50 + i as i32 * 25);
+                let balloon_x = center_x as i32 + 50 + i as i32 * 25;
                 let balloon_y = center_y as i32 - 50 + (((self.elapsed.as_secs_f32() + i as f32) * 2.0).sin() * 5.0) as i32;
 
                 // Balloon (oval)

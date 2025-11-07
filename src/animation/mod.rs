@@ -10,6 +10,7 @@ mod fireworks;
 mod baby;
 mod confetti;
 mod trophy;
+mod framebased;
 
 pub use spinner::SpinnerAnimation;
 pub use rocket::RocketAnimation;
@@ -21,6 +22,7 @@ pub use fireworks::FireworksAnimation;
 pub use baby::BabyAnnouncementAnimation;
 pub use confetti::ConfettiAnimation;
 pub use trophy::TrophyAnimation;
+pub use framebased::FrameBasedAnimation;
 
 use crate::braille::BrailleGrid;
 use crate::rendering::{RenderMode, TerminalRenderer};

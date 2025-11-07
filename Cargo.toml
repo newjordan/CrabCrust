@@ -32,6 +32,14 @@ tokio = { version = "1.41", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
 
+# Video and image processing (optional)
+image = { version = "0.25", optional = true }
+ffmpeg-next = { version = "8.0", optional = true }
+
+[features]
+default = []
+video = ["image", "ffmpeg-next"]
+
 [dev-dependencies]
 pretty_assertions = "1.4"
 

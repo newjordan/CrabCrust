@@ -8,7 +8,13 @@ use crabcrust::{
     FireworksAnimation, MergeAnimation, RabbitAnimation, RocketAnimation, SaveAnimation,
     SpinnerAnimation, TrophyAnimation,
 };
+
+#[cfg(feature = "video")]
+use crabcrust::FrameBasedAnimation;
 use std::time::Duration;
+
+#[cfg(feature = "video")]
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "crabcrust")]
@@ -37,6 +43,37 @@ enum Commands {
         /// Use fullscreen mode instead of inline (clears terminal)
         #[arg(short, long)]
         fullscreen: bool,
+    },
+
+    /// Convert video/GIF to Braille animation (requires 'video' feature)
+    #[cfg(feature = "video")]
+    Convert {
+        /// Input file (video or GIF)
+        input: PathBuf,
+
+        /// Output width in terminal cells (default: 64 for DMD 128x32)
+        #[arg(short, long, default_value = "64")]
+        width: usize,
+
+        /// Output height in terminal cells (default: 8 for DMD 128x32)
+        #[arg(short = 'H', long, default_value = "8")]
+        height: usize,
+
+        /// Brightness threshold (0-255, default: 128)
+        #[arg(short, long, default_value = "128")]
+        threshold: u8,
+
+        /// Play the animation after conversion
+        #[arg(short, long)]
+        play: bool,
+
+        /// Loop the animation when playing
+        #[arg(short, long)]
+        loop_play: bool,
+
+        /// Maximum frames to convert (useful for long videos)
+        #[arg(short, long)]
+        max_frames: Option<usize>,
     },
 }
 
@@ -148,6 +185,47 @@ fn main() -> Result<()> {
 
                     println!("\n✨ Demo complete! What a show!");
                 }
+            }
+        }
+
+        #[cfg(feature = "video")]
+        Commands::Convert {
+            input,
+            width,
+            height,
+            threshold,
+            play,
+            loop_play,
+            max_frames,
+        } => {
+            use crabcrust::video::converter;
+
+            println!("🎬 Converting {} to Braille animation...", input.display());
+            println!("   Target size: {}x{} cells ({}x{} dots)", width, height, width * 2, height * 4);
+            println!("   Threshold: {}", threshold);
+
+            // Detect file type and convert
+            let frames = if input.extension().and_then(|s| s.to_str()) == Some("gif") {
+                println!("   Detected: Animated GIF");
+                converter::gif_to_frames(&input, width, height, threshold)?
+            } else {
+                println!("   Detected: Video file (using ffmpeg)");
+                converter::video_to_frames(&input, width, height, threshold, max_frames)?
+            };
+
+            println!("✅ Converted {} frames!", frames.len());
+
+            if play {
+                println!("\n▶️  Playing animation...");
+                let animation = FrameBasedAnimation::from_braille_frames(frames, loop_play);
+
+                let mut player = AnimationPlayer::inline_auto()?;
+                player.play(animation)?;
+
+                println!("\n✨ Playback complete!");
+            } else {
+                println!("\n💡 Tip: Add --play to preview the animation");
+                println!("   You can use these frames in your own code with FrameBasedAnimation");
             }
         }
     }
