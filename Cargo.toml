@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["CrabCrust Contributors"]
 description = "Add arcade-style animations to your CLI tools 🦀✨"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/yourusername/crabcrust"
+repository = "https://github.com/newjordan/CrabCrust"
 keywords = ["cli", "terminal", "animation", "braille", "arcade"]
 categories = ["command-line-utilities", "visualization"]
 
