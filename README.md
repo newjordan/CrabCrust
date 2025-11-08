@@ -6,11 +6,15 @@ Transform boring command-line interfaces into engaging, arcade-like experiences 
 
 ## 🎬 See It In Action
 
-![CrabCrust Demo](examples/crabcrust_in_action.mp4)
+<div align="center">
+  <a href="https://github.com/newjordan/CrabCrust/blob/main/examples/crabcrust_in_action.mp4">
+    <img src="https://img.shields.io/badge/▶️-Watch%20Demo-blue?style=for-the-badge" alt="Watch Demo">
+  </a>
 
-*Watch CrabCrust add delightful animations to everyday git commands*
+  _Watch CrabCrust add delightful animations to everyday git commands_
+</div>
 
-> Demo video showing inline animations with git commands
+**[📹 View Demo Video →](https://github.com/newjordan/CrabCrust/blob/main/examples/crabcrust_in_action.mp4)**
 
 ## ✨ Features
 
