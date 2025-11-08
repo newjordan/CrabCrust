@@ -10,6 +10,10 @@ pub mod wrapper;
 #[cfg(any(feature = "gif", feature = "video"))]
 pub mod video;
 
+// DMD animation library (optional feature)
+#[cfg(any(feature = "gif", feature = "video"))]
+pub mod dmd_library;
+
 // Re-export commonly used types
 pub use braille::{BrailleGrid, Color};
 pub use rendering::{RenderMode, TerminalRenderer};
