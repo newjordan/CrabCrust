@@ -6,7 +6,11 @@ Transform boring command-line interfaces into engaging, arcade-like experiences 
 
 ## 🎬 See It In Action
 
-https://github.com/newjordan/CrabCrust/assets/crabcrust_in_action.mp4
+
+
+https://github.com/user-attachments/assets/9a52e755-6565-4b80-b66e-09f88af054a9
+
+
 
 *CrabCrust adding delightful animations to everyday git commands*
 
@@ -247,3 +251,4 @@ Made with 🦀 and ✨ by the Rust community.
 ---
 
 **Star this repo if you love making terminals fun!** ⭐
+
