@@ -7,8 +7,12 @@ pub mod executor;
 pub mod wrapper;
 
 // Video conversion (optional feature)
-#[cfg(feature = "video")]
+#[cfg(any(feature = "gif", feature = "video"))]
 pub mod video;
+
+// DMD animation library (optional feature)
+#[cfg(any(feature = "gif", feature = "video"))]
+pub mod dmd_library;
 
 // Re-export commonly used types
 pub use braille::{BrailleGrid, Color};
@@ -17,12 +21,12 @@ pub use animation::{
     Animation, AnimationPlayer,
     SpinnerAnimation, RocketAnimation, SaveAnimation, DownloadAnimation, MergeAnimation,
     RabbitAnimation, FireworksAnimation, BabyAnnouncementAnimation, ConfettiAnimation, TrophyAnimation,
-    FrameBasedAnimation, JackpotAnimation, MultiballAnimation, ExtraBallAnimation, BonusMultiplierAnimation
+    FrameBasedAnimation
 };
 pub use executor::{CommandExecutor, CommandResult};
 
 // Video conversion utilities (optional feature)
-#[cfg(feature = "video")]
+#[cfg(any(feature = "gif", feature = "video"))]
 pub use video::{blit_luma_to_braille, converter};
 
 /// CrabCrust result type
