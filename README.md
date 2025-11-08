@@ -6,7 +6,7 @@ Transform boring command-line interfaces into engaging, arcade-like experiences 
 
 ## 🎬 See It In Action
 
-https://github.com/newjordan/CrabCrust/assets/crabcrust_in_action.mp4
+<video src="https://github.com/newjordan/CrabCrust/raw/main/examples/crabcrust_in_action.mp4" controls></video>
 
 *CrabCrust adding delightful animations to everyday git commands*
 
