@@ -99,8 +99,10 @@ pub fn load_dmd_animation(dmd: DmdAnimation, loop_animation: bool) -> Result<Fra
     };
 
     // Convert GIF to Braille frames
-    // Target: 64x8 cells for standard DMD 128x32 resolution
-    let frames = converter::gif_to_frames(&gif_path, 64, 8, 128)?;
+    // These Tenor GIFs are ~498x150, so we use larger cells to preserve detail
+    // 124x19 cells = 248x76 dots (closer to source resolution, better quality)
+    // Threshold 50: Lower value = more pixels visible (good for dark orange DMD colors)
+    let frames = converter::gif_to_frames(&gif_path, 124, 19, 50)?;
 
     Ok(FrameBasedAnimation::from_braille_frames(frames, loop_animation))
 }
