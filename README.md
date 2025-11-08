@@ -6,9 +6,11 @@ Transform boring command-line interfaces into engaging, arcade-like experiences 
 
 ## 🎬 See It In Action
 
-![CrabCrust Demo](examples/demo.gif)
+![CrabCrust Demo](examples/crabcrust_in_action.mp4)
 
 *Watch CrabCrust add delightful animations to everyday git commands*
+
+> Demo video showing inline animations with git commands
 
 ## ✨ Features
 
