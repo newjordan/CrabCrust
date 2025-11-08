@@ -235,7 +235,7 @@ at your option.
 
 ## 🙏 Credits
 
-The BrailleGrid rendering system was originally developed for real-time audio visualization and has been adapted for general-purpose terminal animations.
+Frosty40
 
 ## 🎪 Philosophy
 
@@ -251,4 +251,5 @@ Made with 🦀 and ✨ by the Rust community.
 ---
 
 **Star this repo if you love making terminals fun!** ⭐
+
 
