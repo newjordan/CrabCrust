@@ -6,15 +6,9 @@ Transform boring command-line interfaces into engaging, arcade-like experiences 
 
 ## 🎬 See It In Action
 
-<div align="center">
-  <a href="https://github.com/newjordan/CrabCrust/blob/main/examples/crabcrust_in_action.mp4">
-    <img src="https://img.shields.io/badge/▶️-Watch%20Demo-blue?style=for-the-badge" alt="Watch Demo">
-  </a>
+https://github.com/newjordan/CrabCrust/assets/crabcrust_in_action.mp4
 
-  _Watch CrabCrust add delightful animations to everyday git commands_
-</div>
-
-**[📹 View Demo Video →](https://github.com/newjordan/CrabCrust/blob/main/examples/crabcrust_in_action.mp4)**
+*CrabCrust adding delightful animations to everyday git commands*
 
 ## ✨ Features
 
@@ -40,18 +34,14 @@ crabcrust demo save
 
 ## 🚀 Installation
 
-### From Source
-
 ```bash
 git clone https://github.com/newjordan/CrabCrust.git
 cd CrabCrust
+cargo build --release
+
+# The binary will be at target/release/crabcrust
+# Optionally install to your system:
 cargo install --path .
-```
-
-### Using Cargo
-
-```bash
-cargo install crabcrust
 ```
 
 ## 📖 Usage
@@ -200,11 +190,11 @@ impl Animation for MyAnimation {
 Convert GIFs and videos to Braille animations:
 
 ```bash
-# Install with experimental features
-cargo install crabcrust --features gif
+# Build with experimental features
+cargo build --release --features gif
 
 # Convert a GIF
-crabcrust convert animation.gif --play
+./target/release/crabcrust convert animation.gif --play
 ```
 
 See [docs/](docs/) for more details on experimental features.
