@@ -12,7 +12,7 @@ https://github.com/user-attachments/assets/9a52e755-6565-4b80-b66e-09f88af054a9
 
 
 
-*CrabCrust adding delightful animations to everyday git commands*
+*CrabCrust adding delightful animations to everyday commands*
 
 ## ✨ Features
 
@@ -251,5 +251,6 @@ Made with 🦀 and ✨ by the Rust community.
 ---
 
 **Star this repo if you love making terminals fun!** ⭐
+
 
 
