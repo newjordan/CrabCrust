@@ -9,11 +9,11 @@ use crabcrust::{
     SpinnerAnimation, TrophyAnimation,
 };
 
-#[cfg(feature = "video")]
+#[cfg(any(feature = "gif", feature = "video"))]
 use crabcrust::FrameBasedAnimation;
 use std::time::Duration;
 
-#[cfg(feature = "video")]
+#[cfg(any(feature = "gif", feature = "video"))]
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -45,8 +45,8 @@ enum Commands {
         fullscreen: bool,
     },
 
-    /// Convert video/GIF to Braille animation (requires 'video' feature)
-    #[cfg(feature = "video")]
+    /// Convert video/GIF to Braille animation (requires 'gif' or 'video' feature)
+    #[cfg(any(feature = "gif", feature = "video"))]
     Convert {
         /// Input file (video or GIF)
         input: PathBuf,
@@ -188,7 +188,7 @@ fn main() -> Result<()> {
             }
         }
 
-        #[cfg(feature = "video")]
+        #[cfg(any(feature = "gif", feature = "video"))]
         Commands::Convert {
             input,
             width,
@@ -209,8 +209,15 @@ fn main() -> Result<()> {
                 println!("   Detected: Animated GIF");
                 converter::gif_to_frames(&input, width, height, threshold)?
             } else {
-                println!("   Detected: Video file (using ffmpeg)");
-                converter::video_to_frames(&input, width, height, threshold, max_frames)?
+                #[cfg(feature = "video")]
+                {
+                    println!("   Detected: Video file (using ffmpeg)");
+                    converter::video_to_frames(&input, width, height, threshold, max_frames)?
+                }
+                #[cfg(not(feature = "video"))]
+                {
+                    anyhow::bail!("Video file support requires the 'video' feature. Only GIF files are supported with the 'gif' feature.");
+                }
             };
 
             println!("✅ Converted {} frames!", frames.len());

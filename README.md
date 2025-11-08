@@ -8,8 +8,9 @@ Transform boring command-line interfaces into engaging, arcade-like experiences 
 
 - **High-Resolution Braille Graphics**: Uses Unicode Braille characters (⣿) for 8× terminal resolution (2×4 dots per cell)
 - **Procedural Animations**: Hand-crafted animations including spinners, rockets, save disks, and more
+- **DMD Animation Support**: Import classic pinball Dot Matrix Display (128×32) animations from GIFs! 🎮
 - **Git Integration**: Themed animations for git commands (commit, push, pull, etc.)
-- **Zero Dependencies on Video Files**: All animations are procedurally generated
+- **Video/GIF Conversion**: Convert any GIF or video to Braille terminal animations
 - **Terminal-Native**: Works in any modern terminal with Unicode support
 - **Fast & Lightweight**: Written in Rust for blazing-fast performance
 
@@ -38,8 +39,42 @@ cargo install --path .
 ### Using Cargo
 
 ```bash
+# Basic installation
 cargo install crabcrust
+
+# With GIF support (recommended for DMD animations!)
+cargo install crabcrust --features gif
+
+# With full video support (requires ffmpeg)
+cargo install crabcrust --features video
 ```
+
+## 🎰 Pinball DMD Animations (NEW!)
+
+Import classic pinball Dot Matrix Display animations into your terminal!
+
+```bash
+# Convert a DMD GIF
+crabcrust convert your_dmd_animation.gif --play
+
+# Find DMD GIFs
+# Search "DMD pinball" on Tenor, VPUniverse, or create your own!
+```
+
+**Quick example:**
+```bash
+# Download Monster Bash DMD
+curl -L "https://media1.tenor.com/m/Z2fGSx32xqcAAAAC/dmd-monster-bash.gif" -o dmd.gif
+
+# Convert and play
+crabcrust convert dmd.gif --play --loop-play
+```
+
+**Learn more:**
+- 📖 [DMD Animation Guide](docs/DMD_ANIMATION_GUIDE.md) - Complete workflow and usage
+- 🎨 [DMD Resources](docs/DMD_RESOURCES.md) - Where to find/create DMD animations
+
+**Why DMD?** Classic pinball machines used 128×32 dot matrix displays for scores, effects, and celebrations - perfect for terminal animations!
 
 ## 📖 Usage
 

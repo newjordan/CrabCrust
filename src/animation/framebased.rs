@@ -7,7 +7,7 @@ use crate::animation::Animation;
 use crate::braille::BrailleGrid;
 use std::time::Duration;
 
-#[cfg(feature = "video")]
+#[cfg(any(feature = "gif", feature = "video"))]
 use crate::video::converter::BrailleFrame;
 
 /// Animation that plays pre-rendered frames
@@ -50,7 +50,7 @@ impl FrameBasedAnimation {
     }
 
     /// Load frames from converted video/GIF frames
-    #[cfg(feature = "video")]
+    #[cfg(any(feature = "gif", feature = "video"))]
     pub fn from_braille_frames(frames: Vec<BrailleFrame>, loop_animation: bool) -> Self {
         let mut anim = Self::new(loop_animation);
 
