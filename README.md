@@ -4,15 +4,21 @@
 
 Transform boring command-line interfaces into engaging, arcade-like experiences with stunning Braille-based terminal animations. Every git commit becomes a save animation, every push launches a rocket, and every command feels like a celebration!
 
+## 🎬 See It In Action
+
+![CrabCrust Demo](examples/demo.gif)
+
+*Watch CrabCrust add delightful animations to everyday git commands*
+
 ## ✨ Features
 
 - **High-Resolution Braille Graphics**: Uses Unicode Braille characters (⣿) for 8× terminal resolution (2×4 dots per cell)
 - **Procedural Animations**: Hand-crafted animations including spinners, rockets, save disks, and more
-- **DMD Animation Support**: Import classic pinball Dot Matrix Display (128×32) animations from GIFs! 🎮
 - **Git Integration**: Themed animations for git commands (commit, push, pull, etc.)
-- **Video/GIF Conversion**: Convert any GIF or video to Braille terminal animations
+- **Inline Rendering**: Animations display in 1/3 of terminal height - non-disruptive to your workflow
 - **Terminal-Native**: Works in any modern terminal with Unicode support
 - **Fast & Lightweight**: Written in Rust for blazing-fast performance
+- **Experimental**: GIF/video conversion pipeline *(work in progress)*
 
 ## 🎮 Demo
 
@@ -31,50 +37,16 @@ crabcrust demo save
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/crabcrust.git
-cd crabcrust
+git clone https://github.com/newjordan/CrabCrust.git
+cd CrabCrust
 cargo install --path .
 ```
 
 ### Using Cargo
 
 ```bash
-# Basic installation
 cargo install crabcrust
-
-# With GIF support (recommended for DMD animations!)
-cargo install crabcrust --features gif
-
-# With full video support (requires ffmpeg)
-cargo install crabcrust --features video
 ```
-
-## 🎰 Pinball DMD Animations (NEW!)
-
-Import classic pinball Dot Matrix Display animations into your terminal!
-
-```bash
-# Convert a DMD GIF
-crabcrust convert your_dmd_animation.gif --play
-
-# Find DMD GIFs
-# Search "DMD pinball" on Tenor, VPUniverse, or create your own!
-```
-
-**Quick example:**
-```bash
-# Download Monster Bash DMD
-curl -L "https://media1.tenor.com/m/Z2fGSx32xqcAAAAC/dmd-monster-bash.gif" -o dmd.gif
-
-# Convert and play
-crabcrust convert dmd.gif --play --loop-play
-```
-
-**Learn more:**
-- 📖 [DMD Animation Guide](docs/DMD_ANIMATION_GUIDE.md) - Complete workflow and usage
-- 🎨 [DMD Resources](docs/DMD_RESOURCES.md) - Where to find/create DMD animations
-
-**Why DMD?** Classic pinball machines used 128×32 dot matrix displays for scores, effects, and celebrations - perfect for terminal animations!
 
 ## 📖 Usage
 
@@ -139,7 +111,7 @@ A floppy disk icon with progress bar and checkmark - the classic save icon!
 
 ## 🏗️ Architecture
 
-CrabCrust is built on a modular architecture extracted from the [crabmusic](https://github.com/yourusername/crabmusic) project:
+CrabCrust is built on a modular architecture:
 
 ```
 crabcrust/
@@ -213,16 +185,34 @@ impl Animation for MyAnimation {
 }
 ```
 
+## 🧪 Experimental Features
+
+> **Note**: These features are currently in development and may not be fully functional.
+
+### GIF/Video Conversion *(Beta)*
+
+Convert GIFs and videos to Braille animations:
+
+```bash
+# Install with experimental features
+cargo install crabcrust --features gif
+
+# Convert a GIF
+crabcrust convert animation.gif --play
+```
+
+See [docs/](docs/) for more details on experimental features.
+
 ## 🎯 Roadmap
 
-- [ ] Video file playback support (FFmpeg integration)
-- [ ] More animations (download, merge, error states)
+- [x] Core Braille rendering engine
+- [x] Git command wrapper with procedural animations
+- [x] Inline rendering mode (1/3 terminal height)
+- [ ] GIF/video conversion pipeline *(in progress)*
+- [ ] More procedural animations (download, merge, error states)
 - [ ] Cargo wrapper (`crabcrust cargo build`)
-- [ ] NPM wrapper (`crabcrust npm install`)
-- [ ] Configuration file for custom mappings
+- [ ] Configuration file for custom animation mappings
 - [ ] Plugin system for community animations
-- [ ] Animation library/marketplace
-- [ ] Audio support (terminal beeps synced to animations)
 
 ## 🤝 Contributing
 
@@ -245,9 +235,7 @@ at your option.
 
 ## 🙏 Credits
 
-CrabCrust is built on technology extracted from [crabmusic](https://github.com/yourusername/crabmusic), a real-time terminal-based audio visualizer.
-
-The BrailleGrid rendering system was originally developed for audio visualization and has been adapted for general-purpose terminal animations.
+The BrailleGrid rendering system was originally developed for real-time audio visualization and has been adapted for general-purpose terminal animations.
 
 ## 🎪 Philosophy
 
