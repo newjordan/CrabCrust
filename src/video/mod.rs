@@ -60,6 +60,9 @@ pub fn blit_luma_to_braille(
 #[cfg(feature = "video")]
 pub mod converter;
 
+#[cfg(feature = "video")]
+pub mod pac;
+
 #[cfg(test)]
 #[cfg(feature = "video")]
 mod tests {
