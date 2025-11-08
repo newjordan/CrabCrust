@@ -79,22 +79,7 @@ git push  # 🚀 Rocket launch!
 
 ## 🎨 Animations
 
-### Spinner Animation
-A smooth rotating circle with a trailing effect - perfect for loading states.
-
-**Used for**: Generic commands, status checks, pull operations
-
-### Rocket Animation
-A rocket ship launching upward with flame effects and stars - celebrating your code going live!
-
-**Used for**: `git push`
-
-**Duration**: 2 seconds
-
-**Features**:
-- Procedurally generated stars
-- Animated flame with flickering effect
-- Smooth easing animation
+Various - Test Only ATM - Proper Animation will be developed once core funcionality is in place. 
 
 ### Save Animation
 A floppy disk icon with progress bar and checkmark - the classic save icon!
@@ -251,6 +236,7 @@ Made with 🦀 and ✨ by the Rust community.
 ---
 
 **Star this repo if you love making terminals fun!** ⭐
+
 
 
 
