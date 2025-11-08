@@ -113,11 +113,13 @@ pub fn gif_to_frames<P: AsRef<Path>>(
 ) -> Result<Vec<BrailleFrame>> {
     use image::AnimationDecoder;
     use std::fs::File;
+    use std::io::BufReader;
 
     let file = File::open(path.as_ref())
         .context("Failed to open GIF file")?;
 
-    let decoder = image::codecs::gif::GifDecoder::new(file)
+    let reader = BufReader::new(file);
+    let decoder = image::codecs::gif::GifDecoder::new(reader)
         .context("Failed to decode GIF")?;
 
     let frames = decoder.into_frames();

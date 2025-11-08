@@ -10,6 +10,9 @@ use crate::executor::{CommandExecutor, CommandResult};
 use anyhow::Result;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+#[cfg(any(feature = "gif", feature = "video"))]
+use crate::dmd_library;
+
 /// Git command wrapper with themed animations
 pub struct GitWrapper {
     wrapper: CliWrapper,
@@ -35,6 +38,7 @@ impl GitWrapper {
             "push" => self.run_push(executor),
             "pull" => self.run_pull(executor),
             "merge" => self.run_merge(executor),
+            "status" | "diff" | "log" => self.run_status(executor),
             _ => self.wrapper.run_with_default_animations(executor),
         }
     }
@@ -82,14 +86,36 @@ impl GitWrapper {
         // Execute command
         let result = executor.run()?;
 
-        // Show success animation - EPIC CELEBRATION!
+        // Show success animation - DMD VICTORY or fallback to procedural
         if result.success {
-            let random = Self::random_choice(4);
-            match random {
-                0 => player.play(RocketAnimation::new(Duration::from_secs(2)))?,
-                1 => player.play(FireworksAnimation::default())?,
-                2 => player.play(TrophyAnimation::default())?,
-                _ => player.play(ConfettiAnimation::default())?,
+            #[cfg(any(feature = "gif", feature = "video"))]
+            {
+                // Try to load DMD animation, fallback to procedural if it fails
+                match dmd_library::load_dmd_for_git_command("push", false) {
+                    Some(Ok(dmd_anim)) => {
+                        player.play(dmd_anim)?;
+                    }
+                    _ => {
+                        // Fallback to procedural animations
+                        let random = Self::random_choice(4);
+                        match random {
+                            0 => player.play(RocketAnimation::new(Duration::from_secs(2)))?,
+                            1 => player.play(FireworksAnimation::default())?,
+                            2 => player.play(TrophyAnimation::default())?,
+                            _ => player.play(ConfettiAnimation::default())?,
+                        }
+                    }
+                }
+            }
+            #[cfg(not(any(feature = "gif", feature = "video")))]
+            {
+                let random = Self::random_choice(4);
+                match random {
+                    0 => player.play(RocketAnimation::new(Duration::from_secs(2)))?,
+                    1 => player.play(FireworksAnimation::default())?,
+                    2 => player.play(TrophyAnimation::default())?,
+                    _ => player.play(ConfettiAnimation::default())?,
+                }
             }
         }
 
@@ -113,12 +139,30 @@ impl GitWrapper {
         // Execute command
         let result = executor.run()?;
 
-        // Show download or rabbit animation on success
+        // Show DMD or fallback animation on success
         if result.success {
-            let random = Self::random_choice(2);
-            match random {
-                0 => player.play(DownloadAnimation::default())?,
-                _ => player.play(RabbitAnimation::default())?, // "I'm late! I'm late!"
+            #[cfg(any(feature = "gif", feature = "video"))]
+            {
+                match dmd_library::load_dmd_for_git_command("pull", false) {
+                    Some(Ok(dmd_anim)) => {
+                        player.play(dmd_anim)?;
+                    }
+                    _ => {
+                        let random = Self::random_choice(2);
+                        match random {
+                            0 => player.play(DownloadAnimation::default())?,
+                            _ => player.play(RabbitAnimation::default())?,
+                        }
+                    }
+                }
+            }
+            #[cfg(not(any(feature = "gif", feature = "video")))]
+            {
+                let random = Self::random_choice(2);
+                match random {
+                    0 => player.play(DownloadAnimation::default())?,
+                    _ => player.play(RabbitAnimation::default())?,
+                }
             }
         }
 
@@ -142,9 +186,58 @@ impl GitWrapper {
         // Execute command
         let result = executor.run()?;
 
-        // Show merge animation on success
+        // Show DMD or fallback animation on success
         if result.success {
-            player.play(MergeAnimation::default())?;
+            #[cfg(any(feature = "gif", feature = "video"))]
+            {
+                match dmd_library::load_dmd_for_git_command("merge", false) {
+                    Some(Ok(dmd_anim)) => {
+                        player.play(dmd_anim)?;
+                    }
+                    _ => {
+                        player.play(MergeAnimation::default())?;
+                    }
+                }
+            }
+            #[cfg(not(any(feature = "gif", feature = "video")))]
+            {
+                player.play(MergeAnimation::default())?;
+            }
+        }
+
+        // Print output after animation completes
+        drop(player);
+        println!("{}", result.combined_output());
+
+        Ok(result)
+    }
+
+    /// Run git status/diff/log with quick DMD animation
+    fn run_status(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
+        use crate::animation::AnimationPlayer;
+
+        // Use inline mode with 1/3 terminal height
+        let mut player = AnimationPlayer::inline_auto()?;
+
+        // Show loading animation
+        player.play_for(SpinnerAnimation::new(), Duration::from_millis(300))?;
+
+        // Execute command
+        let result = executor.run()?;
+
+        // Show quick DMD animation on success
+        if result.success {
+            #[cfg(any(feature = "gif", feature = "video"))]
+            {
+                match dmd_library::load_dmd_for_git_command("status", false) {
+                    Some(Ok(dmd_anim)) => {
+                        player.play(dmd_anim)?;
+                    }
+                    _ => {
+                        // No fallback animation for status - just return
+                    }
+                }
+            }
         }
 
         // Print output after animation completes

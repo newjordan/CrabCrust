@@ -3,7 +3,7 @@
 // This module provides functions to convert video frames and images
 // into Braille dot patterns for terminal rendering.
 
-#[cfg(feature = "video")]
+#[cfg(any(feature = "gif", feature = "video"))]
 use crate::braille::BrailleGrid;
 
 /// Convert luminance (grayscale) data to Braille dots
@@ -28,7 +28,7 @@ use crate::braille::BrailleGrid;
 /// let luma_data = vec![255u8; 128 * 32]; // White 128x32 image
 /// blit_luma_to_braille(&luma_data, 128, 32, 128, &mut grid);
 /// ```
-#[cfg(feature = "video")]
+#[cfg(any(feature = "gif", feature = "video"))]
 pub fn blit_luma_to_braille(
     luma: &[u8],
     img_w: usize,
@@ -57,14 +57,14 @@ pub fn blit_luma_to_braille(
     }
 }
 
-#[cfg(feature = "video")]
+#[cfg(any(feature = "gif", feature = "video"))]
 pub mod converter;
 
-#[cfg(feature = "video")]
+#[cfg(any(feature = "gif", feature = "video"))]
 pub mod pac;
 
 #[cfg(test)]
-#[cfg(feature = "video")]
+#[cfg(any(feature = "gif", feature = "video"))]
 mod tests {
     use super::*;
 
