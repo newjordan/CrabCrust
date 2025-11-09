@@ -1,7 +1,20 @@
-// Matrix Rain Animation - Decodes output text through cascading digital rain
+// Matrix Rain Animation - EXPERIMENTAL / NON-FUNCTIONAL
 //
-// The Matrix rain falls randomly, progressively revealing the actual output
-// text as columns reach their target positions. Chaos → Order.
+// ⚠️ WARNING: This implementation does not work as intended.
+//
+// PROBLEM: Braille rendering is designed for graphics (dots), not text (characters).
+// Matrix rain requires actual character glyphs (ﾊﾐﾋ, O, A, etc.), but BrailleGrid
+// only renders dot patterns. The result is unreadable garbled output.
+//
+// See docs/MATRIX_RAIN_POSTMORTEM.md for full explanation and alternatives.
+//
+// This code is kept for reference but should not be used in production.
+// A proper implementation would require a character-based rendering system,
+// which is outside the scope of CrabCrust's Braille-focused architecture.
+//
+// Original concept: Matrix rain that decodes output text through cascading
+// digital rain, with random characters progressively revealing real text.
+// Chaos → Order (but needs character rendering, not Braille dots).
 
 use crate::animation::Animation;
 use crate::braille::BrailleGrid;

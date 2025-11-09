@@ -212,34 +212,19 @@ impl GitWrapper {
         Ok(result)
     }
 
-    /// Run git status/diff/log with Matrix Rain decode animation
+    /// Run git status/diff/log with quick spinner
     fn run_status(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
-        use crate::animation::{AnimationPlayer, MatrixRainAnimation};
+        use crate::animation::AnimationPlayer;
 
-        // Execute command first to get output
+        // Execute command
         let result = executor.run()?;
 
-        if result.success {
-            // Use inline mode with 1/3 terminal height
-            let mut player = AnimationPlayer::inline_auto()?;
+        // NOTE: Matrix Rain decode was attempted but doesn't work well with Braille.
+        // See docs/MATRIX_RAIN_POSTMORTEM.md for details.
+        // Keeping simple for now - just show output.
 
-            // Create Matrix rain that decodes the output
-            let matrix = MatrixRainAnimation::with_params(
-                result.combined_output(),
-                Duration::from_secs(3),
-                0.7,   // Decode at 70% fall progress
-                0.5,   // 50% speed variation for chaos
-            );
-
-            // Play Matrix rain decode animation
-            player.play(matrix)?;
-
-            // Animation completes, output is already visible (decoded)
-            drop(player);
-        } else {
-            // On error, just print output normally
-            println!("{}", result.combined_output());
-        }
+        // Print output
+        println!("{}", result.combined_output());
 
         Ok(result)
     }

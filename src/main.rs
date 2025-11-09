@@ -142,21 +142,15 @@ fn main() -> Result<()> {
                     player.play(TrophyAnimation::default())?;
                 }
                 "matrix" => {
-                    println!("🟢 Matrix Rain Demo - Decoding Reality...\n");
+                    println!("🟢 Matrix Rain Demo [EXPERIMENTAL - Non-functional]\n");
+                    println!("⚠️  Note: Braille rendering doesn't work for text characters.");
+                    println!("    See docs/MATRIX_RAIN_POSTMORTEM.md for details.\n");
                     let demo_text = "The Matrix has you...\n\
 Follow the white rabbit.\n\
-Knock, knock, Neo.\n\
-\n\
-Wake up...\n\
-The Matrix is everywhere.\n\
-It is the world pulled over your eyes.\n\
-\n\
-Unfortunately, no one can be told what the Matrix is.\n\
-You have to see it for yourself.\n\
-\n\
-This is your last chance.\n\
-After this, there is no turning back.";
+Knock, knock, Neo.";
                     player.play(MatrixRainAnimation::new(demo_text.to_string()))?;
+                    println!("\n💡 This animation uses Braille dots, not actual characters.");
+                    println!("   Result is unreadable. Needs character-based rendering system.");
                 }
                 "all" | _ => {
                     println!("🎮 Running all animations...\n");
