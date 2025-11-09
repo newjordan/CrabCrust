@@ -197,6 +197,31 @@ cargo build --release --features gif
 ./target/release/crabcrust convert animation.gif --play
 ```
 
+### DMD Animation Library
+
+Browse and preview pinball Dot Matrix Display (DMD) animations:
+
+```bash
+# List all available DMD animations
+crabcrust library list
+
+# Filter by tag or theme
+crabcrust library list --tag tech
+crabcrust library list --theme "Monster Bash"
+
+# Preview an animation
+crabcrust library preview skull
+
+# Show detailed info
+crabcrust library info invader
+
+# Browse tags and themes
+crabcrust library tags
+crabcrust library themes
+```
+
+The DMD library includes curated pinball animations that automatically play for git commands. See [docs/DMD_LIBRARY.md](docs/DMD_LIBRARY.md) for details on adding new DMDs.
+
 See [docs/](docs/) for more details on experimental features.
 
 ## 🎯 Roadmap

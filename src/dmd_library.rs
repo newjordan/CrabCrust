@@ -19,6 +19,8 @@ pub struct DmdInfo {
     pub file_path: &'static str,
     pub description: &'static str,
     pub frames: usize,
+    pub tags: &'static [&'static str],
+    pub theme: &'static str,
 }
 
 /// Available DMD animations
@@ -37,18 +39,24 @@ impl DmdAnimation {
                 file_path: "ref/dmd_invader.gif",
                 description: "Monster Bash invader character (38 frames, quick & energetic)",
                 frames: 38,
+                tags: &["action", "horror", "monster"],
+                theme: "Monster Bash",
             },
             DmdAnimation::Skull => DmdInfo {
                 name: "skull",
                 file_path: "ref/monster_bash_dmd.gif",
                 description: "Monster Bash skull character (63 frames, action sequence)",
                 frames: 63,
+                tags: &["action", "horror", "monster"],
+                theme: "Monster Bash",
             },
             DmdAnimation::Sword => DmdInfo {
                 name: "sword",
                 file_path: "ref/dmd_sword.gif",
                 description: "Monster Bash sword character (42 frames, victory pose)",
                 frames: 42,
+                tags: &["celebration", "victory", "monster"],
+                theme: "Monster Bash",
             },
         }
     }
@@ -123,6 +131,55 @@ pub fn get_dmd_recommendation(command: &str) -> Option<DmdInfo> {
     git_command_to_dmd(command).map(|dmd| dmd.info())
 }
 
+/// Get all unique tags from all DMDs
+pub fn get_all_tags() -> Vec<String> {
+    let mut tags = std::collections::HashSet::new();
+    for dmd in DmdAnimation::all() {
+        for tag in dmd.info().tags {
+            tags.insert(tag.to_string());
+        }
+    }
+    let mut tags: Vec<String> = tags.into_iter().collect();
+    tags.sort();
+    tags
+}
+
+/// Get all unique themes
+pub fn get_all_themes() -> Vec<String> {
+    let mut themes = std::collections::HashSet::new();
+    for dmd in DmdAnimation::all() {
+        themes.insert(dmd.info().theme.to_string());
+    }
+    let mut themes: Vec<String> = themes.into_iter().collect();
+    themes.sort();
+    themes
+}
+
+/// Filter DMDs by tag
+pub fn filter_by_tag(tag: &str) -> Vec<DmdInfo> {
+    DmdAnimation::all()
+        .iter()
+        .map(|dmd| dmd.info())
+        .filter(|info| info.tags.contains(&tag))
+        .collect()
+}
+
+/// Filter DMDs by theme
+pub fn filter_by_theme(theme: &str) -> Vec<DmdInfo> {
+    DmdAnimation::all()
+        .iter()
+        .map(|dmd| dmd.info())
+        .filter(|info| info.theme == theme)
+        .collect()
+}
+
+/// Find DMD by name
+pub fn find_by_name(name: &str) -> Option<DmdAnimation> {
+    DmdAnimation::all()
+        .into_iter()
+        .find(|dmd| dmd.info().name == name)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -150,5 +207,23 @@ mod tests {
         assert_eq!(invader.name, "invader");
         assert_eq!(invader.frames, 38);
         assert!(invader.file_path.contains("invader"));
+        assert_eq!(invader.theme, "Monster Bash");
+        assert!(invader.tags.contains(&"action"));
+    }
+
+    #[test]
+    fn test_filter_by_tag() {
+        let action_dmds = filter_by_tag("action");
+        assert!(action_dmds.len() >= 2); // invader and skull
+
+        let celebration_dmds = filter_by_tag("celebration");
+        assert!(celebration_dmds.len() >= 1); // sword
+    }
+
+    #[test]
+    fn test_find_by_name() {
+        assert!(find_by_name("invader").is_some());
+        assert!(find_by_name("skull").is_some());
+        assert!(find_by_name("nonexistent").is_none());
     }
 }
