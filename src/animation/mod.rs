@@ -11,6 +11,7 @@ mod baby;
 mod confetti;
 mod trophy;
 mod framebased;
+mod matrixrain;
 
 pub use spinner::SpinnerAnimation;
 pub use rocket::RocketAnimation;
@@ -23,6 +24,7 @@ pub use baby::BabyAnnouncementAnimation;
 pub use confetti::ConfettiAnimation;
 pub use trophy::TrophyAnimation;
 pub use framebased::FrameBasedAnimation;
+pub use matrixrain::MatrixRainAnimation;
 
 use crate::braille::BrailleGrid;
 use crate::rendering::{RenderMode, TerminalRenderer};
