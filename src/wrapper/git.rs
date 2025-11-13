@@ -3,8 +3,7 @@
 use super::CliWrapper;
 use crate::animation::{
     BabyAnnouncementAnimation, ConfettiAnimation, DownloadAnimation, FireworksAnimation,
-    MergeAnimation, RabbitAnimation, RocketAnimation, SaveAnimation, SpinnerAnimation,
-    TrophyAnimation,
+    MergeAnimation, RabbitAnimation, RocketAnimation, SaveAnimation, TrophyAnimation,
 };
 use crate::executor::{CommandExecutor, CommandResult};
 use anyhow::Result;
@@ -55,7 +54,7 @@ impl GitWrapper {
 
         // Show brief loading animation (max 2 seconds), stop early if command finishes
         player.play_until(
-            SpinnerAnimation::new(),
+            SaveAnimation::default(),
             Duration::from_secs(2),
             || handle.is_done(),
         )?;
@@ -93,7 +92,7 @@ impl GitWrapper {
 
         // Show brief loading animation (max 2 seconds), stop early if command finishes
         player.play_until(
-            SpinnerAnimation::new(),
+            SaveAnimation::default(),
             Duration::from_secs(2),
             || handle.is_done(),
         )?;
@@ -154,7 +153,7 @@ impl GitWrapper {
 
         // Show brief loading animation (max 2 seconds), stop early if command finishes
         player.play_until(
-            SpinnerAnimation::new(),
+            SaveAnimation::default(),
             Duration::from_secs(2),
             || handle.is_done(),
         )?;
@@ -209,7 +208,7 @@ impl GitWrapper {
 
         // Show brief loading animation (max 2 seconds), stop early if command finishes
         player.play_until(
-            SpinnerAnimation::new(),
+            SaveAnimation::default(),
             Duration::from_secs(2),
             || handle.is_done(),
         )?;
@@ -256,7 +255,7 @@ impl GitWrapper {
 
         // Show brief loading animation (max 1 second for status - shorter for quick commands)
         player.play_until(
-            SpinnerAnimation::new(),
+            SaveAnimation::default(),
             Duration::from_secs(1),
             || handle.is_done(),
         )?;
