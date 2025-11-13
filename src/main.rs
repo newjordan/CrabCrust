@@ -6,7 +6,7 @@ use crabcrust::wrapper::git::GitWrapper;
 use crabcrust::{
     AnimationPlayer, BabyAnnouncementAnimation, ConfettiAnimation, DownloadAnimation,
     FireworksAnimation, MergeAnimation, RabbitAnimation, RocketAnimation, SaveAnimation,
-    SpinnerAnimation, TrophyAnimation,
+    SpinnerAnimation, TrophyAnimation, MatrixRainAnimation,
 };
 
 #[cfg(any(feature = "gif", feature = "video"))]
@@ -36,7 +36,7 @@ enum Commands {
 
     /// Test animations
     Demo {
-        /// Which animation to demo: spinner, rocket, save, download, merge, rabbit, fireworks, baby, confetti, trophy, all
+        /// Which animation to demo: spinner, rocket, save, download, merge, rabbit, fireworks, baby, confetti, trophy, matrix, all
         #[arg(default_value = "all")]
         animation: String,
 
@@ -141,6 +141,11 @@ fn main() -> Result<()> {
                     println!("🏆 Trophy Animation Demo - You're a champion!");
                     player.play(TrophyAnimation::default())?;
                 }
+                "matrix" => {
+                    println!("🟢 Matrix Rain Demo - Decoding Reality...");
+                    let demo_text = "The Matrix has you...\nFollow the white rabbit.\nKnock, knock, Neo.";
+                    player.play(MatrixRainAnimation::new(demo_text.to_string()))?;
+                }
                 "all" | _ => {
                     println!("🎮 Running all animations...\n");
 
@@ -182,6 +187,11 @@ fn main() -> Result<()> {
 
                     println!("\n10. Trophy - You're a Winner!");
                     player.play(TrophyAnimation::default())?;
+                    std::thread::sleep(Duration::from_millis(500));
+
+                    println!("\n11. Matrix Rain - Decoding Reality...");
+                    let demo_text = "Wake up, Neo...\nThe Matrix has you.\nFollow the white rabbit.";
+                    player.play(MatrixRainAnimation::new(demo_text.to_string()))?;
 
                     println!("\n✨ Demo complete! What a show!");
                 }

@@ -21,7 +21,7 @@ pub use animation::{
     Animation, AnimationPlayer,
     SpinnerAnimation, RocketAnimation, SaveAnimation, DownloadAnimation, MergeAnimation,
     RabbitAnimation, FireworksAnimation, BabyAnnouncementAnimation, ConfettiAnimation, TrophyAnimation,
-    FrameBasedAnimation
+    FrameBasedAnimation, MatrixRainAnimation
 };
 pub use executor::{CommandExecutor, CommandResult};
 

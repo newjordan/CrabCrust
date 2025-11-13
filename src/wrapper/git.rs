@@ -212,37 +212,34 @@ impl GitWrapper {
         Ok(result)
     }
 
-    /// Run git status/diff/log with quick DMD animation
+    /// Run git status/diff/log with Matrix Rain decode animation
     fn run_status(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
-        use crate::animation::AnimationPlayer;
+        use crate::animation::{AnimationPlayer, MatrixRainAnimation};
 
-        // Use inline mode with 1/3 terminal height
-        let mut player = AnimationPlayer::inline_auto()?;
-
-        // Show loading animation
-        player.play_for(SpinnerAnimation::new(), Duration::from_millis(300))?;
-
-        // Execute command
+        // Execute command first to get output
         let result = executor.run()?;
 
-        // Show quick DMD animation on success
         if result.success {
-            #[cfg(any(feature = "gif", feature = "video"))]
-            {
-                match dmd_library::load_dmd_for_git_command("status", false) {
-                    Some(Ok(dmd_anim)) => {
-                        player.play(dmd_anim)?;
-                    }
-                    _ => {
-                        // No fallback animation for status - just return
-                    }
-                }
-            }
-        }
+            // Use inline mode with 1/3 terminal height
+            let mut player = AnimationPlayer::inline_auto()?;
 
-        // Print output after animation completes
-        drop(player);
-        println!("{}", result.combined_output());
+            // Create Matrix rain that decodes the output
+            let matrix = MatrixRainAnimation::with_params(
+                result.combined_output(),
+                Duration::from_secs(3),
+                0.7,   // Decode at 70% fall progress
+                0.5,   // 50% speed variation for chaos
+            );
+
+            // Play Matrix rain decode animation
+            player.play(matrix)?;
+
+            // Animation completes, output is already visible (decoded)
+            drop(player);
+        } else {
+            // On error, just print output normally
+            println!("{}", result.combined_output());
+        }
 
         Ok(result)
     }

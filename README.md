@@ -6,13 +6,9 @@ Transform boring command-line interfaces into engaging, arcade-like experiences 
 
 ## 🎬 See It In Action
 
+<video src="https://github.com/newjordan/CrabCrust/raw/main/examples/crabcrust_in_action.mp4" controls></video>
 
-
-https://github.com/user-attachments/assets/9a52e755-6565-4b80-b66e-09f88af054a9
-
-
-
-*CrabCrust adding delightful animations to everyday commands*
+*CrabCrust adding delightful animations to everyday git commands*
 
 ## ✨ Features
 
@@ -79,7 +75,22 @@ git push  # 🚀 Rocket launch!
 
 ## 🎨 Animations
 
-Various - Test Only ATM - Proper Animation will be developed once core funcionality is in place. 
+### Spinner Animation
+A smooth rotating circle with a trailing effect - perfect for loading states.
+
+**Used for**: Generic commands, status checks, pull operations
+
+### Rocket Animation
+A rocket ship launching upward with flame effects and stars - celebrating your code going live!
+
+**Used for**: `git push`
+
+**Duration**: 2 seconds
+
+**Features**:
+- Procedurally generated stars
+- Animated flame with flickering effect
+- Smooth easing animation
 
 ### Save Animation
 A floppy disk icon with progress bar and checkmark - the classic save icon!
@@ -220,7 +231,7 @@ at your option.
 
 ## 🙏 Credits
 
-Frosty40
+The BrailleGrid rendering system was originally developed for real-time audio visualization and has been adapted for general-purpose terminal animations.
 
 ## 🎪 Philosophy
 
@@ -236,7 +247,3 @@ Made with 🦀 and ✨ by the Rust community.
 ---
 
 **Star this repo if you love making terminals fun!** ⭐
-
-
-
-
