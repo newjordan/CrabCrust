@@ -26,6 +26,9 @@ pub enum DmdAnimation {
     Invader,
     Skull,
     Sword,
+    EyesLook1,
+    EyesLook2,
+    TeethChomp,
 }
 
 impl DmdAnimation {
@@ -50,6 +53,24 @@ impl DmdAnimation {
                 description: "Monster Bash sword character (42 frames, victory pose)",
                 frames: 42,
             },
+            DmdAnimation::EyesLook1 => DmdInfo {
+                name: "eyes_look_1",
+                file_path: "ref/eyes_look_around_1.mp4",
+                description: "Monster Bash eyes looking around animation",
+                frames: 0, // Will be determined during conversion
+            },
+            DmdAnimation::EyesLook2 => DmdInfo {
+                name: "eyes_look_2",
+                file_path: "ref/eyes_look_2.mp4",
+                description: "Monster Bash eyes looking animation",
+                frames: 0, // Will be determined during conversion
+            },
+            DmdAnimation::TeethChomp => DmdInfo {
+                name: "teeth_chomp",
+                file_path: "ref/teeth_chomp.mp4",
+                description: "Monster Bash teeth chomping animation",
+                frames: 0, // Will be determined during conversion
+            },
         }
     }
 
@@ -59,6 +80,9 @@ impl DmdAnimation {
             DmdAnimation::Invader,
             DmdAnimation::Skull,
             DmdAnimation::Sword,
+            DmdAnimation::EyesLook1,
+            DmdAnimation::EyesLook2,
+            DmdAnimation::TeethChomp,
         ]
     }
 }
@@ -66,9 +90,11 @@ impl DmdAnimation {
 /// Git command to DMD animation mapping
 pub fn git_command_to_dmd(command: &str) -> Option<DmdAnimation> {
     match command {
-        "status" | "diff" | "log" => Some(DmdAnimation::Invader),   // Quick status check
+        "status" | "diff" | "log" => Some(DmdAnimation::EyesLook1), // Eyes watching/looking at status
         "pull" | "fetch" | "clone" => Some(DmdAnimation::Skull),    // Pulling in changes
-        "push" | "merge" => Some(DmdAnimation::Sword),              // Victory/celebration
+        "push" => Some(DmdAnimation::Sword),                         // Victory push!
+        "commit" => Some(DmdAnimation::TeethChomp),                  // Chomping down on that commit
+        "merge" => Some(DmdAnimation::EyesLook2),                    // Eyes watching the merge
         _ => None,
     }
 }
@@ -89,20 +115,32 @@ pub fn load_dmd_animation(dmd: DmdAnimation, loop_animation: bool) -> Result<Fra
         .map(|p| p.to_path_buf())
         .unwrap_or_else(|| PathBuf::from("."));
 
-    let gif_path = project_root.join(info.file_path);
+    let file_path = project_root.join(info.file_path);
 
     // Check if file exists, fall back to relative path if not
-    let gif_path = if gif_path.exists() {
-        gif_path
+    let file_path = if file_path.exists() {
+        file_path
     } else {
         PathBuf::from(info.file_path)
     };
 
-    // Convert GIF to Braille frames
-    // These Tenor GIFs are ~498x150, so we use larger cells to preserve detail
-    // 124x19 cells = 248x76 dots (closer to source resolution, better quality)
+    // Convert to Braille frames based on file extension
+    // DMD animations: 124x19 cells = 248x76 dots (preserves detail)
     // Threshold 50: Lower value = more pixels visible (good for dark orange DMD colors)
-    let frames = converter::gif_to_frames(&gif_path, 124, 19, 50)?;
+    let frames = if info.file_path.ends_with(".gif") {
+        converter::gif_to_frames(&file_path, 124, 19, 50)?
+    } else if info.file_path.ends_with(".mp4") {
+        #[cfg(feature = "video")]
+        {
+            converter::video_to_frames(&file_path, 124, 19, 50, None)?
+        }
+        #[cfg(not(feature = "video"))]
+        {
+            anyhow::bail!("Video support not enabled. Build with --features video")
+        }
+    } else {
+        anyhow::bail!("Unsupported file format: {}", info.file_path)
+    };
 
     Ok(FrameBasedAnimation::from_braille_frames(frames, loop_animation))
 }
@@ -129,19 +167,24 @@ mod tests {
 
     #[test]
     fn test_git_command_mapping() {
-        assert!(matches!(git_command_to_dmd("status"), Some(DmdAnimation::Invader)));
+        assert!(matches!(git_command_to_dmd("status"), Some(DmdAnimation::EyesLook1)));
         assert!(matches!(git_command_to_dmd("push"), Some(DmdAnimation::Sword)));
         assert!(matches!(git_command_to_dmd("pull"), Some(DmdAnimation::Skull)));
+        assert!(matches!(git_command_to_dmd("commit"), Some(DmdAnimation::TeethChomp)));
+        assert!(matches!(git_command_to_dmd("merge"), Some(DmdAnimation::EyesLook2)));
         assert!(git_command_to_dmd("unknown").is_none());
     }
 
     #[test]
     fn test_list_dmds() {
         let dmds = list_dmds();
-        assert_eq!(dmds.len(), 3);
+        assert_eq!(dmds.len(), 6);
         assert!(dmds.iter().any(|d| d.name == "invader"));
         assert!(dmds.iter().any(|d| d.name == "skull"));
         assert!(dmds.iter().any(|d| d.name == "sword"));
+        assert!(dmds.iter().any(|d| d.name == "eyes_look_1"));
+        assert!(dmds.iter().any(|d| d.name == "eyes_look_2"));
+        assert!(dmds.iter().any(|d| d.name == "teeth_chomp"));
     }
 
     #[test]
