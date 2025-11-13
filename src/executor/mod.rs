@@ -2,6 +2,8 @@
 
 use anyhow::{Context, Result};
 use std::process::{Command, Output, Stdio};
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 /// Result of command execution
 #[derive(Debug, Clone)]
@@ -41,6 +43,32 @@ impl CommandResult {
             result.push_str(&self.stderr);
         }
         result
+    }
+}
+
+/// Handle for a command running in the background
+pub struct CommandHandle {
+    handle: Option<thread::JoinHandle<()>>,
+    result: Arc<Mutex<Option<Result<CommandResult>>>>,
+}
+
+impl CommandHandle {
+    /// Check if the command has completed
+    pub fn is_done(&self) -> bool {
+        let result = self.result.lock().unwrap();
+        result.is_some()
+    }
+
+    /// Wait for the command to complete and return the result
+    pub fn wait(mut self) -> Result<CommandResult> {
+        if let Some(handle) = self.handle.take() {
+            handle.join().expect("Command thread panicked");
+        }
+
+        let mut result = self.result.lock().unwrap();
+        result
+            .take()
+            .expect("Command result not available")
     }
 }
 
@@ -96,6 +124,46 @@ impl CommandExecutor {
             .with_context(|| format!("Failed to execute command: {} {:?}", self.program, self.args))?;
 
         Ok(CommandResult::from_output(output))
+    }
+
+    /// Execute the command in a background thread
+    /// Returns a handle that can be used to check completion status
+    pub fn run_concurrent(&self) -> CommandHandle {
+        let program = self.program.clone();
+        let args = self.args.clone();
+        let cwd = self.cwd.clone();
+
+        let result = Arc::new(Mutex::new(None));
+        let result_clone = Arc::clone(&result);
+
+        let handle = thread::spawn(move || {
+            let mut cmd = Command::new(&program);
+            cmd.args(&args);
+
+            if let Some(cwd) = cwd {
+                cmd.current_dir(cwd);
+            }
+
+            cmd.stdout(Stdio::piped());
+            cmd.stderr(Stdio::piped());
+
+            let output = cmd
+                .output()
+                .with_context(|| format!("Failed to execute command: {} {:?}", program, args));
+
+            let cmd_result = match output {
+                Ok(output) => Ok(CommandResult::from_output(output)),
+                Err(e) => Err(e),
+            };
+
+            let mut result_lock = result_clone.lock().unwrap();
+            *result_lock = Some(cmd_result);
+        });
+
+        CommandHandle {
+            handle: Some(handle),
+            result,
+        }
     }
 
     /// Execute the command asynchronously

@@ -3,8 +3,7 @@
 use super::CliWrapper;
 use crate::animation::{
     BabyAnnouncementAnimation, ConfettiAnimation, DownloadAnimation, FireworksAnimation,
-    MergeAnimation, RabbitAnimation, RocketAnimation, SaveAnimation, SpinnerAnimation,
-    TrophyAnimation,
+    MergeAnimation, RabbitAnimation, RocketAnimation, SaveAnimation, TrophyAnimation,
 };
 use crate::executor::{CommandExecutor, CommandResult};
 use anyhow::Result;
@@ -50,14 +49,23 @@ impl GitWrapper {
         // Use inline mode with 1/3 terminal height for proper visibility
         let mut player = AnimationPlayer::inline_auto()?;
 
-        // Show loading animation
-        player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
+        // Execute command in background thread
+        let handle = executor.run_concurrent();
 
-        // Execute command
-        let result = executor.run()?;
+        // Show brief loading animation (max 2 seconds), stop early if command finishes
+        player.play_until(
+            SaveAnimation::default(),
+            Duration::from_secs(2),
+            || handle.is_done(),
+        )?;
+
+        // Clear animation and wait for command to complete
+        drop(player);
+        let result = handle.wait()?;
 
         // Show success animation - CONGRATULATIONS, YOU'RE THE FATHER!
         if result.success {
+            let mut player = AnimationPlayer::inline_auto()?;
             let random = Self::random_choice(3);
             match random {
                 0 => player.play(BabyAnnouncementAnimation::default())?,
@@ -67,7 +75,6 @@ impl GitWrapper {
         }
 
         // Print output after animation completes
-        drop(player); // Clean up renderer
         println!("{}", result.combined_output());
 
         Ok(result)
@@ -80,14 +87,23 @@ impl GitWrapper {
         // Use inline mode with 1/3 terminal height for epic animations
         let mut player = AnimationPlayer::inline_auto()?;
 
-        // Show loading animation
-        player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
+        // Execute command in background thread
+        let handle = executor.run_concurrent();
 
-        // Execute command
-        let result = executor.run()?;
+        // Show brief loading animation (max 2 seconds), stop early if command finishes
+        player.play_until(
+            SaveAnimation::default(),
+            Duration::from_secs(2),
+            || handle.is_done(),
+        )?;
+
+        // Clear animation and wait for command to complete
+        drop(player);
+        let result = handle.wait()?;
 
         // Show success animation - DMD VICTORY or fallback to procedural
         if result.success {
+            let mut player = AnimationPlayer::inline_auto()?;
             #[cfg(any(feature = "gif", feature = "video"))]
             {
                 // Try to load DMD animation, fallback to procedural if it fails
@@ -120,7 +136,6 @@ impl GitWrapper {
         }
 
         // Print output after animation completes
-        drop(player); // Clean up renderer
         println!("{}", result.combined_output());
 
         Ok(result)
@@ -133,14 +148,23 @@ impl GitWrapper {
         // Use inline mode with 1/3 terminal height
         let mut player = AnimationPlayer::inline_auto()?;
 
-        // Show loading animation
-        player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
+        // Execute command in background thread
+        let handle = executor.run_concurrent();
 
-        // Execute command
-        let result = executor.run()?;
+        // Show brief loading animation (max 2 seconds), stop early if command finishes
+        player.play_until(
+            SaveAnimation::default(),
+            Duration::from_secs(2),
+            || handle.is_done(),
+        )?;
+
+        // Clear animation and wait for command to complete
+        drop(player);
+        let result = handle.wait()?;
 
         // Show DMD or fallback animation on success
         if result.success {
+            let mut player = AnimationPlayer::inline_auto()?;
             #[cfg(any(feature = "gif", feature = "video"))]
             {
                 match dmd_library::load_dmd_for_git_command("pull", false) {
@@ -167,7 +191,6 @@ impl GitWrapper {
         }
 
         // Print output after animation completes
-        drop(player);
         println!("{}", result.combined_output());
 
         Ok(result)
@@ -180,14 +203,23 @@ impl GitWrapper {
         // Use inline mode with 1/3 terminal height
         let mut player = AnimationPlayer::inline_auto()?;
 
-        // Show loading animation
-        player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
+        // Execute command in background thread
+        let handle = executor.run_concurrent();
 
-        // Execute command
-        let result = executor.run()?;
+        // Show brief loading animation (max 2 seconds), stop early if command finishes
+        player.play_until(
+            SaveAnimation::default(),
+            Duration::from_secs(2),
+            || handle.is_done(),
+        )?;
+
+        // Clear animation and wait for command to complete
+        drop(player);
+        let result = handle.wait()?;
 
         // Show DMD or fallback animation on success
         if result.success {
+            let mut player = AnimationPlayer::inline_auto()?;
             #[cfg(any(feature = "gif", feature = "video"))]
             {
                 match dmd_library::load_dmd_for_git_command("merge", false) {
@@ -206,7 +238,6 @@ impl GitWrapper {
         }
 
         // Print output after animation completes
-        drop(player);
         println!("{}", result.combined_output());
 
         Ok(result)
@@ -216,8 +247,22 @@ impl GitWrapper {
     fn run_status(&mut self, executor: CommandExecutor) -> Result<CommandResult> {
         use crate::animation::{AnimationPlayer, MatrixRainAnimation};
 
-        // Execute command first to get output
-        let result = executor.run()?;
+        // Use inline mode with 1/3 terminal height
+        let mut player = AnimationPlayer::inline_auto()?;
+
+        // Execute command in background thread
+        let handle = executor.run_concurrent();
+
+        // Show brief loading animation (max 1 second for status - shorter for quick commands)
+        player.play_until(
+            SaveAnimation::default(),
+            Duration::from_secs(1),
+            || handle.is_done(),
+        )?;
+
+        // Clear animation and wait for command to complete
+        drop(player);
+        let result = handle.wait()?;
 
         if result.success {
             // Use inline mode with 1/3 terminal height
