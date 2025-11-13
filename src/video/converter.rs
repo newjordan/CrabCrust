@@ -189,8 +189,8 @@ pub fn video_to_frames<P: AsRef<Path>>(
         decoder.width(),
         decoder.height(),
         ffmpeg::format::Pixel::GRAY8,
-        width * 2,  // Braille dot width
-        height * 4, // Braille dot height
+        (width * 2) as u32,  // Braille dot width
+        (height * 4) as u32, // Braille dot height
         ffmpeg::software::scaling::Flags::BILINEAR,
     ).context("Failed to create scaler")?;
 
