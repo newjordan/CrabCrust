@@ -157,6 +157,65 @@ impl AnimationPlayer {
         Ok(())
     }
 
+    /// Play animation with timeout while a predicate function returns false
+    /// This allows showing animation during command execution with a max timeout
+    ///
+    /// # Arguments
+    /// * `animation` - The animation to play
+    /// * `timeout` - Maximum duration to show animation
+    /// * `check_done` - Function that returns true when the operation is complete
+    ///
+    /// # Returns
+    /// True if operation completed before timeout, false if timeout was reached
+    pub fn play_until<A: Animation, F>(
+        &mut self,
+        mut animation: A,
+        timeout: Duration,
+        mut check_done: F,
+    ) -> Result<bool>
+    where
+        F: FnMut() -> bool,
+    {
+        let (width, height) = self.renderer.size()?;
+        let mut grid = BrailleGrid::new(width as usize, height as usize);
+
+        let start = Instant::now();
+        let mut last_frame = start;
+        let target_fps = 60;
+        let frame_duration = Duration::from_millis(1000 / target_fps);
+
+        loop {
+            let now = Instant::now();
+            let delta = now.duration_since(last_frame);
+
+            // Check if timeout reached
+            if start.elapsed() >= timeout {
+                return Ok(false); // Timeout reached
+            }
+
+            // Check if operation is done
+            if check_done() {
+                return Ok(true); // Completed before timeout
+            }
+
+            // Update animation
+            animation.update(delta);
+
+            // Render
+            grid.clear();
+            animation.render(&mut grid);
+            self.renderer.render_braille(&grid)?;
+
+            // Frame rate limiting
+            let elapsed = now.elapsed();
+            if elapsed < frame_duration {
+                std::thread::sleep(frame_duration - elapsed);
+            }
+
+            last_frame = now;
+        }
+    }
+
     /// Get access to the terminal renderer
     pub fn renderer_mut(&mut self) -> &mut TerminalRenderer {
         &mut self.renderer

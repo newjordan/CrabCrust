@@ -50,11 +50,25 @@ impl GitWrapper {
         // Use inline mode with 1/3 terminal height for proper visibility
         let mut player = AnimationPlayer::inline_auto()?;
 
-        // Show loading animation
-        player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
+        // Execute command in background thread
+        let handle = executor.run_concurrent();
 
-        // Execute command
-        let result = executor.run()?;
+        // Show loading animation with timeout (10 seconds)
+        let completed_before_timeout = player.play_until(
+            SpinnerAnimation::new(),
+            Duration::from_secs(10),
+            || handle.is_done(),
+        )?;
+
+        // If timeout was reached, inform user and clean up animation
+        if !completed_before_timeout {
+            drop(player);
+            println!("Command is taking longer than expected, still running...\n");
+            player = AnimationPlayer::inline_auto()?;
+        }
+
+        // Wait for command to complete
+        let result = handle.wait()?;
 
         // Show success animation - CONGRATULATIONS, YOU'RE THE FATHER!
         if result.success {
@@ -80,11 +94,28 @@ impl GitWrapper {
         // Use inline mode with 1/3 terminal height for epic animations
         let mut player = AnimationPlayer::inline_auto()?;
 
-        // Show loading animation
-        player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
+        // Execute command in background thread
+        let handle = executor.run_concurrent();
 
-        // Execute command
-        let result = executor.run()?;
+        // Show loading animation with timeout (15 seconds)
+        // Animation will stop after timeout even if command is still running
+        let completed_before_timeout = player.play_until(
+            SpinnerAnimation::new(),
+            Duration::from_secs(15),
+            || handle.is_done(),
+        )?;
+
+        // If timeout was reached, inform user and clean up animation
+        if !completed_before_timeout {
+            drop(player); // Clean up renderer to reveal terminal
+            println!("Command is taking longer than expected, still running...\n");
+
+            // Re-create player for after command completes
+            player = AnimationPlayer::inline_auto()?;
+        }
+
+        // Wait for command to complete
+        let result = handle.wait()?;
 
         // Show success animation - DMD VICTORY or fallback to procedural
         if result.success {
@@ -133,11 +164,25 @@ impl GitWrapper {
         // Use inline mode with 1/3 terminal height
         let mut player = AnimationPlayer::inline_auto()?;
 
-        // Show loading animation
-        player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
+        // Execute command in background thread
+        let handle = executor.run_concurrent();
 
-        // Execute command
-        let result = executor.run()?;
+        // Show loading animation with timeout (12 seconds)
+        let completed_before_timeout = player.play_until(
+            SpinnerAnimation::new(),
+            Duration::from_secs(12),
+            || handle.is_done(),
+        )?;
+
+        // If timeout was reached, inform user and clean up animation
+        if !completed_before_timeout {
+            drop(player);
+            println!("Command is taking longer than expected, still running...\n");
+            player = AnimationPlayer::inline_auto()?;
+        }
+
+        // Wait for command to complete
+        let result = handle.wait()?;
 
         // Show DMD or fallback animation on success
         if result.success {
@@ -180,11 +225,25 @@ impl GitWrapper {
         // Use inline mode with 1/3 terminal height
         let mut player = AnimationPlayer::inline_auto()?;
 
-        // Show loading animation
-        player.play_for(SpinnerAnimation::new(), Duration::from_millis(500))?;
+        // Execute command in background thread
+        let handle = executor.run_concurrent();
 
-        // Execute command
-        let result = executor.run()?;
+        // Show loading animation with timeout (10 seconds)
+        let completed_before_timeout = player.play_until(
+            SpinnerAnimation::new(),
+            Duration::from_secs(10),
+            || handle.is_done(),
+        )?;
+
+        // If timeout was reached, inform user and clean up animation
+        if !completed_before_timeout {
+            drop(player);
+            println!("Command is taking longer than expected, still running...\n");
+            player = AnimationPlayer::inline_auto()?;
+        }
+
+        // Wait for command to complete
+        let result = handle.wait()?;
 
         // Show DMD or fallback animation on success
         if result.success {
@@ -219,11 +278,25 @@ impl GitWrapper {
         // Use inline mode with 1/3 terminal height
         let mut player = AnimationPlayer::inline_auto()?;
 
-        // Show loading animation
-        player.play_for(SpinnerAnimation::new(), Duration::from_millis(300))?;
+        // Execute command in background thread
+        let handle = executor.run_concurrent();
 
-        // Execute command
-        let result = executor.run()?;
+        // Show loading animation with timeout (5 seconds - shorter for status commands)
+        let completed_before_timeout = player.play_until(
+            SpinnerAnimation::new(),
+            Duration::from_secs(5),
+            || handle.is_done(),
+        )?;
+
+        // If timeout was reached, inform user and clean up animation
+        if !completed_before_timeout {
+            drop(player);
+            println!("Command is taking longer than expected, still running...\n");
+            player = AnimationPlayer::inline_auto()?;
+        }
+
+        // Wait for command to complete
+        let result = handle.wait()?;
 
         // Show quick DMD animation on success
         if result.success {
