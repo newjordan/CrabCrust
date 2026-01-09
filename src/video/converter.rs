@@ -153,6 +153,29 @@ pub fn gif_to_frames<P: AsRef<Path>>(
     Ok(braille_frames)
 }
 
+/// Convert video bytes to a sequence of Braille frames using ffmpeg
+/// Writes to a temp file since FFmpeg requires file paths
+#[cfg(feature = "video")]
+pub fn video_to_frames_from_bytes(
+    data: &[u8],
+    width: usize,
+    height: usize,
+    threshold: u8,
+    max_frames: Option<usize>,
+) -> Result<Vec<BrailleFrame>> {
+    use std::io::Write;
+
+    // Write to temp file (FFmpeg requires file path)
+    let mut temp_file = tempfile::NamedTempFile::with_suffix(".mp4")
+        .context("Failed to create temp file")?;
+    temp_file.write_all(data)
+        .context("Failed to write video data to temp file")?;
+    temp_file.flush()?;
+
+    // Convert using file-based function
+    video_to_frames(temp_file.path(), width, height, threshold, max_frames)
+}
+
 /// Convert a video file to a sequence of Braille frames using ffmpeg
 #[cfg(feature = "video")]
 pub fn video_to_frames<P: AsRef<Path>>(
@@ -229,14 +252,31 @@ pub fn video_to_frames<P: AsRef<Path>>(
             // Create Braille grid
             let mut grid = BrailleGrid::new(width, height);
 
-            // Get grayscale data
+            // Get grayscale data with stride correction
+            let stride = gray_frame.stride(0);
             let data = gray_frame.data(0);
+            let target_width = width * 2;
+            let target_height = height * 4;
+
+            // Copy data respecting stride to get correct image
+            let corrected_data: Vec<u8> = (0..target_height)
+                .flat_map(|y| {
+                    let row_start = y * stride;
+                    (0..target_width).map(move |x| {
+                        if row_start + x < data.len() {
+                            data[row_start + x]
+                        } else {
+                            0
+                        }
+                    })
+                })
+                .collect();
 
             // Convert to Braille
             super::blit_luma_to_braille(
-                data,
-                width * 2,
-                height * 4,
+                &corrected_data,
+                target_width,
+                target_height,
                 threshold,
                 &mut grid,
             );

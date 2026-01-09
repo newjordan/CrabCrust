@@ -109,9 +109,22 @@ impl GitWrapper {
                 // Try to load DMD animation, fallback to procedural if it fails
                 match dmd_library::load_dmd_for_git_command("push", false) {
                     Some(Ok(dmd_anim)) => {
+                        eprintln!("[DEBUG] Playing ComputerFingers DMD animation");
                         player.play(dmd_anim)?;
                     }
-                    _ => {
+                    Some(Err(e)) => {
+                        eprintln!("[DEBUG] DMD load error: {}", e);
+                        // Fallback to procedural animations
+                        let random = Self::random_choice(4);
+                        match random {
+                            0 => player.play(RocketAnimation::new(Duration::from_secs(2)))?,
+                            1 => player.play(FireworksAnimation::default())?,
+                            2 => player.play(TrophyAnimation::default())?,
+                            _ => player.play(ConfettiAnimation::default())?,
+                        }
+                    }
+                    None => {
+                        eprintln!("[DEBUG] No DMD animation found for push");
                         // Fallback to procedural animations
                         let random = Self::random_choice(4);
                         match random {
@@ -172,21 +185,15 @@ impl GitWrapper {
                         player.play(dmd_anim)?;
                     }
                     _ => {
-                        let random = Self::random_choice(2);
-                        match random {
-                            0 => player.play(DownloadAnimation::default())?,
-                            _ => player.play(RabbitAnimation::default())?,
-                        }
+                        // Use RabbitAnimation as default - cooler than green arrow
+                        player.play(RabbitAnimation::default())?;
                     }
                 }
             }
             #[cfg(not(any(feature = "gif", feature = "video")))]
             {
-                let random = Self::random_choice(2);
-                match random {
-                    0 => player.play(DownloadAnimation::default())?,
-                    _ => player.play(RabbitAnimation::default())?,
-                }
+                // Use RabbitAnimation as default - cooler than green arrow
+                player.play(RabbitAnimation::default())?;
             }
         }
 

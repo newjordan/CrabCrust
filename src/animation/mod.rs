@@ -12,6 +12,7 @@ mod confetti;
 mod trophy;
 mod framebased;
 mod matrixrain;
+mod embedded_computer_fingers;
 
 pub use spinner::SpinnerAnimation;
 pub use rocket::RocketAnimation;
@@ -25,6 +26,7 @@ pub use confetti::ConfettiAnimation;
 pub use trophy::TrophyAnimation;
 pub use framebased::FrameBasedAnimation;
 pub use matrixrain::MatrixRainAnimation;
+pub use embedded_computer_fingers::get_computer_fingers_frames;
 
 use crate::braille::BrailleGrid;
 use crate::rendering::{RenderMode, TerminalRenderer};

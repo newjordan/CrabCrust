@@ -12,6 +12,9 @@ use std::sync::OnceLock;
 #[cfg(any(feature = "gif", feature = "video"))]
 use crate::video::converter;
 
+// Pre-converted embedded animations (works globally without runtime FFmpeg)
+use crate::animation::get_computer_fingers_frames;
+
 /// DMD animation metadata
 #[derive(Debug, Clone)]
 pub struct DmdInfo {
@@ -22,6 +25,7 @@ pub struct DmdInfo {
 }
 
 /// Available DMD animations
+#[derive(Copy, Clone)]
 pub enum DmdAnimation {
     Invader,
     Skull,
@@ -29,6 +33,8 @@ pub enum DmdAnimation {
     EyesLook1,
     EyesLook2,
     TeethChomp,
+    TerminatorStartup,
+    ComputerFingers,
 }
 
 impl DmdAnimation {
@@ -71,6 +77,18 @@ impl DmdAnimation {
                 description: "Monster Bash teeth chomping animation",
                 frames: 0, // Will be determined during conversion
             },
+            DmdAnimation::TerminatorStartup => DmdInfo {
+                name: "terminator_startup",
+                file_path: "ref/terminator_lcok_in.gif",
+                description: "Terminator lock-in startup animation",
+                frames: 0, // Will be determined during conversion
+            },
+            DmdAnimation::ComputerFingers => DmdInfo {
+                name: "computer_fingers",
+                file_path: "ref/computer_fingers.mp4",
+                description: "Computer fingers typing animation for git push",
+                frames: 0, // Will be determined during conversion
+            },
         }
     }
 
@@ -83,6 +101,8 @@ impl DmdAnimation {
             DmdAnimation::EyesLook1,
             DmdAnimation::EyesLook2,
             DmdAnimation::TeethChomp,
+            DmdAnimation::TerminatorStartup,
+            DmdAnimation::ComputerFingers,
         ]
     }
 }
@@ -91,8 +111,8 @@ impl DmdAnimation {
 pub fn git_command_to_dmd(command: &str) -> Option<DmdAnimation> {
     match command {
         "status" | "diff" | "log" => Some(DmdAnimation::EyesLook1), // Eyes watching/looking at status
-        "pull" | "fetch" | "clone" => Some(DmdAnimation::Skull),    // Pulling in changes
-        "push" => Some(DmdAnimation::Sword),                         // Victory push!
+        "pull" | "fetch" | "clone" => Some(DmdAnimation::Invader),  // Quick & energetic invader!
+        "push" => Some(DmdAnimation::ComputerFingers),               // Computer fingers typing - push complete!
         "commit" => Some(DmdAnimation::TeethChomp),                  // Chomping down on that commit
         "merge" => Some(DmdAnimation::EyesLook2),                    // Eyes watching the merge
         _ => None,
@@ -107,7 +127,13 @@ static DMD_CACHE: OnceLock<HashMap<String, Vec<u8>>> = OnceLock::new();
 pub fn load_dmd_animation(dmd: DmdAnimation, loop_animation: bool) -> Result<FrameBasedAnimation> {
     let info = dmd.info();
 
-    // Construct path relative to project root
+    // Check for pre-converted embedded animations first (works globally without FFmpeg)
+    if let DmdAnimation::ComputerFingers = dmd {
+        let frames = get_computer_fingers_frames();
+        return Ok(FrameBasedAnimation::from_braille_frames(frames, loop_animation));
+    }
+
+    // Fall back to file-based loading for other animations
     let project_root = std::env::current_exe()?
         .parent()
         .and_then(|p| p.parent())
@@ -168,8 +194,8 @@ mod tests {
     #[test]
     fn test_git_command_mapping() {
         assert!(matches!(git_command_to_dmd("status"), Some(DmdAnimation::EyesLook1)));
-        assert!(matches!(git_command_to_dmd("push"), Some(DmdAnimation::Sword)));
-        assert!(matches!(git_command_to_dmd("pull"), Some(DmdAnimation::Skull)));
+        assert!(matches!(git_command_to_dmd("push"), Some(DmdAnimation::ComputerFingers)));
+        assert!(matches!(git_command_to_dmd("pull"), Some(DmdAnimation::Invader)));
         assert!(matches!(git_command_to_dmd("commit"), Some(DmdAnimation::TeethChomp)));
         assert!(matches!(git_command_to_dmd("merge"), Some(DmdAnimation::EyesLook2)));
         assert!(git_command_to_dmd("unknown").is_none());
@@ -178,13 +204,15 @@ mod tests {
     #[test]
     fn test_list_dmds() {
         let dmds = list_dmds();
-        assert_eq!(dmds.len(), 6);
+        assert_eq!(dmds.len(), 8);
         assert!(dmds.iter().any(|d| d.name == "invader"));
         assert!(dmds.iter().any(|d| d.name == "skull"));
         assert!(dmds.iter().any(|d| d.name == "sword"));
         assert!(dmds.iter().any(|d| d.name == "eyes_look_1"));
         assert!(dmds.iter().any(|d| d.name == "eyes_look_2"));
         assert!(dmds.iter().any(|d| d.name == "teeth_chomp"));
+        assert!(dmds.iter().any(|d| d.name == "terminator_startup"));
+        assert!(dmds.iter().any(|d| d.name == "computer_fingers"));
     }
 
     #[test]

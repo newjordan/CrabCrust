@@ -75,6 +75,22 @@ enum Commands {
         #[arg(short, long)]
         max_frames: Option<usize>,
     },
+
+    /// Play startup animation (Terminator lock-in sequence)
+    #[cfg(any(feature = "gif", feature = "video"))]
+    Startup {
+        /// Use fullscreen mode instead of inline
+        #[arg(short, long)]
+        fullscreen: bool,
+    },
+
+    /// Fresh start - play animation and reset terminal with 2/3 rule
+    #[cfg(any(feature = "gif", feature = "video"))]
+    Fresh {
+        /// Skip animation and just reset terminal
+        #[arg(short, long)]
+        skip_animation: bool,
+    },
 }
 
 fn main() -> Result<()> {
@@ -244,6 +260,61 @@ fn main() -> Result<()> {
                 println!("\n💡 Tip: Add --play to preview the animation");
                 println!("   You can use these frames in your own code with FrameBasedAnimation");
             }
+        }
+
+        #[cfg(any(feature = "gif", feature = "video"))]
+        Commands::Startup { fullscreen } => {
+            use crabcrust::dmd_library::{load_dmd_animation, DmdAnimation};
+
+            let mut player = if fullscreen {
+                AnimationPlayer::new()?
+            } else {
+                AnimationPlayer::inline_auto()?
+            };
+
+            let animation = load_dmd_animation(DmdAnimation::TerminatorStartup, false)?;
+            player.play(animation)?;
+        }
+
+        #[cfg(any(feature = "gif", feature = "video"))]
+        Commands::Fresh { skip_animation } => {
+            use crabcrust::dmd_library::{load_dmd_animation, DmdAnimation};
+            use crossterm::{cursor, execute, terminal};
+            use std::io::stdout;
+
+            if !skip_animation {
+                // Play a fun animation before resetting
+                let mut player = AnimationPlayer::inline_auto()?;
+
+                // Randomly choose a refreshing animation
+                let animations = vec![
+                    DmdAnimation::Invader,
+                    DmdAnimation::Skull,
+                    DmdAnimation::Sword,
+                ];
+                let now = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos();
+                let choice = (now as usize) % animations.len();
+
+                let animation = load_dmd_animation(animations[choice], false)?;
+                player.play(animation)?;
+            }
+
+            // Clear the terminal
+            execute!(stdout(), terminal::Clear(terminal::ClearType::All))?;
+
+            // Get terminal size
+            let (cols, rows) = terminal::size()?;
+
+            // Calculate 2/3 position from bottom
+            let target_row = (rows as f32 * (2.0 / 3.0)) as u16;
+
+            // Move cursor to 2/3 position
+            execute!(stdout(), cursor::MoveTo(0, target_row))?;
+
+            println!("✨ Fresh start! Terminal reset with 2/3 rule");
         }
     }
 
