@@ -4,7 +4,9 @@ use super::Animation;
 use crate::braille::{BrailleGrid, Color};
 use std::time::Duration;
 
-/// Spinning animation using Braille dots
+/// Spinning braille trail shown while a command is still running.
+///
+/// The animation loops until the caller stops it.
 pub struct SpinnerAnimation {
     angle: f32,
     elapsed: Duration,
@@ -12,6 +14,7 @@ pub struct SpinnerAnimation {
 }
 
 impl SpinnerAnimation {
+    /// Start a cyan spinner.
     pub fn new() -> Self {
         Self {
             angle: 0.0,
@@ -20,6 +23,7 @@ impl SpinnerAnimation {
         }
     }
 
+    /// Start a spinner drawn in `color`.
     pub fn with_color(color: Color) -> Self {
         Self {
             angle: 0.0,
@@ -54,7 +58,11 @@ impl Animation for SpinnerAnimation {
             let x = center_x as f32 + trail_angle.cos() * radius as f32;
             let y = center_y as f32 + trail_angle.sin() * radius as f32;
 
-            if x >= 0.0 && y >= 0.0 && (x as usize) < grid.dot_width() && (y as usize) < grid.dot_height() {
+            if x >= 0.0
+                && y >= 0.0
+                && (x as usize) < grid.dot_width()
+                && (y as usize) < grid.dot_height()
+            {
                 // Fade color based on trail position
                 let fade = 1.0 - (i as f32 / 8.0) * 0.7;
                 let color = Color::new(

@@ -3,13 +3,14 @@ use super::Animation;
 use crate::braille::{BrailleGrid, Color};
 use std::time::Duration;
 
-/// Merge animation showing two branches coming together
+/// Two branches that join, used for `git merge`.
 pub struct MergeAnimation {
     elapsed: Duration,
     total_duration: Duration,
 }
 
 impl MergeAnimation {
+    /// Play the branch join across `duration`.
     pub fn new(duration: Duration) -> Self {
         Self {
             elapsed: Duration::ZERO,
@@ -41,14 +42,14 @@ impl Animation for MergeAnimation {
         // Phase 3: Merged branch (0.7 - 1.0)
 
         let branch1_color = Color::new(100, 200, 255); // Blue (main branch)
-        let branch2_color = Color::new(255, 180, 50);  // Orange (feature branch)
-        let merge_color = Color::new(150, 255, 150);   // Green (merged)
+        let branch2_color = Color::new(255, 180, 50); // Orange (feature branch)
+        let merge_color = Color::new(150, 255, 150); // Green (merged)
 
         if progress < 0.7 {
             // Draw main branch (straight line on left going right)
-            let branch1_start_x = center_x - 80;
+            let branch1_start_x = center_x.saturating_sub(80);
             let branch1_end_x = center_x + (progress * 100.0) as usize;
-            let y1 = center_y - 20;
+            let y1 = center_y.saturating_sub(20);
 
             for x in branch1_start_x..branch1_end_x {
                 if x < grid.dot_width() && y1 < grid.dot_height() {
@@ -61,8 +62,8 @@ impl Animation for MergeAnimation {
 
             // Draw feature branch (curved line from top)
             let branch2_progress = progress.min(0.6) / 0.6;
-            let branch2_start_x = center_x - 40;
-            let branch2_start_y = center_y - 60;
+            let branch2_start_x = center_x.saturating_sub(40);
+            let branch2_start_y = center_y.saturating_sub(60);
 
             for t in 0..100 {
                 let t_norm = t as f32 / 100.0;
@@ -103,7 +104,7 @@ impl Animation for MergeAnimation {
             }
         } else {
             // Phase 3: Show completed merge
-            let merged_start_x = center_x - 80;
+            let merged_start_x = center_x.saturating_sub(80);
             let merged_end_x = center_x + 80;
             let y = center_y;
 
@@ -140,21 +141,6 @@ impl Animation for MergeAnimation {
                 }
             }
         }
-
-        // Draw labels
-        let label = if progress < 0.7 {
-            "Merging branches..."
-        } else {
-            "Merge successful!"
-        };
-
-        // Simple label rendering (centered at bottom)
-        let label_y = center_y + 70;
-        let label_x = center_x.saturating_sub(label.len() * 4);
-
-        // Note: Text rendering would need proper font support
-        // For now, just skip the text rendering in the animation
-        let _ = (label, label_x, label_y); // Suppress unused warnings
     }
 
     fn name(&self) -> &str {

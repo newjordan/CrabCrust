@@ -1,16 +1,24 @@
-// Command executor module
+//! Run external programs and capture their output.
+//!
+//! [`CommandExecutor`] is the piece a command wrapper uses before it picks
+//! an animation. [`CommandResult`] keeps the original stdout, stderr, and
+//! exit code.
 
 use anyhow::{Context, Result};
 use std::process::{Command, Output, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-/// Result of command execution
+/// Output of a finished command.
 #[derive(Debug, Clone)]
 pub struct CommandResult {
+    /// Standard output, decoded lossily as UTF-8.
     pub stdout: String,
+    /// Standard error, decoded lossily as UTF-8.
     pub stderr: String,
+    /// Process exit code, or `-1` when the operating system reported none.
     pub exit_code: i32,
+    /// `true` when the process exited with status zero.
     pub success: bool,
 }
 
@@ -46,7 +54,7 @@ impl CommandResult {
     }
 }
 
-/// Handle for a command running in the background
+/// A command running on a background thread.
 pub struct CommandHandle {
     handle: Option<thread::JoinHandle<()>>,
     result: Arc<Mutex<Option<Result<CommandResult>>>>,
@@ -66,13 +74,11 @@ impl CommandHandle {
         }
 
         let mut result = self.result.lock().unwrap();
-        result
-            .take()
-            .expect("Command result not available")
+        result.take().expect("Command result not available")
     }
 }
 
-/// Command executor for running CLI tools
+/// A program plus arguments, ready to run.
 pub struct CommandExecutor {
     program: String,
     args: Vec<String>,
@@ -119,9 +125,12 @@ impl CommandExecutor {
         cmd.stdout(Stdio::piped());
         cmd.stderr(Stdio::piped());
 
-        let output = cmd
-            .output()
-            .with_context(|| format!("Failed to execute command: {} {:?}", self.program, self.args))?;
+        let output = cmd.output().with_context(|| {
+            format!(
+                "Failed to execute command: {} {:?}",
+                self.program, self.args
+            )
+        })?;
 
         Ok(CommandResult::from_output(output))
     }
@@ -238,5 +247,69 @@ mod tests {
         let combined = result.combined_output();
         assert!(combined.contains("output"));
         assert!(combined.contains("error"));
+    }
+
+    #[test]
+    fn combined_output_skips_empty_streams() {
+        let only_out = CommandResult {
+            stdout: "out".to_string(),
+            stderr: String::new(),
+            exit_code: 0,
+            success: true,
+        };
+        assert_eq!(only_out.combined_output(), "out");
+
+        let only_err = CommandResult {
+            stdout: String::new(),
+            stderr: "err".to_string(),
+            exit_code: 1,
+            success: false,
+        };
+        assert_eq!(only_err.combined_output(), "err");
+    }
+
+    #[test]
+    fn working_directory_is_honored() {
+        let result = CommandExecutor::new("pwd", &[])
+            .with_cwd("/tmp")
+            .run()
+            .expect("pwd");
+        assert!(result.success);
+        assert!(result.stdout.contains("/tmp"));
+    }
+
+    #[test]
+    fn nonzero_exit_is_reported() {
+        let result = CommandExecutor::new("sh", &["-c", "echo out; echo err >&2; exit 3"])
+            .run()
+            .expect("sh");
+        assert!(!result.success);
+        assert_eq!(result.exit_code, 3);
+        assert!(result.stdout.contains("out"));
+        assert!(result.stderr.contains("err"));
+        assert!(result.combined_output().contains("err"));
+    }
+
+    #[test]
+    fn concurrent_echo_completes() {
+        let handle = CommandExecutor::new("echo", &["background"]).run_concurrent();
+        let result = handle.wait().expect("join");
+        assert!(result.success);
+        assert!(result.stdout.contains("background"));
+    }
+
+    #[test]
+    fn async_echo_completes() {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("runtime");
+        let result = runtime.block_on(async {
+            CommandExecutor::new("echo", &["async"])
+                .run_async()
+                .await
+                .expect("echo")
+        });
+        assert!(result.stdout.contains("async"));
     }
 }

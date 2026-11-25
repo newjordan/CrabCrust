@@ -38,11 +38,7 @@ impl Animation for PulsingCircle {
             center_x,
             center_y,
             radius,
-            Color::new(
-                (255.0 * pulse) as u8,
-                (100.0 + 155.0 * pulse) as u8,
-                255,
-            ),
+            Color::new((255.0 * pulse) as u8, (100.0 + 155.0 * pulse) as u8, 255),
         );
 
         // Draw center dot

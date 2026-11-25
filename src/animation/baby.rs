@@ -12,7 +12,7 @@ struct Confetti {
     rotation: f32,
 }
 
-/// Baby announcement celebration animation
+/// Stork-and-confetti announcement for a new commit.
 pub struct BabyAnnouncementAnimation {
     elapsed: Duration,
     total_duration: Duration,
@@ -20,6 +20,7 @@ pub struct BabyAnnouncementAnimation {
 }
 
 impl BabyAnnouncementAnimation {
+    /// Play the announcement for `duration`.
     pub fn new(duration: Duration) -> Self {
         let mut confetti = Vec::new();
 
@@ -193,7 +194,7 @@ impl Animation for BabyAnnouncementAnimation {
         // Draw "IT'S A COMMIT!" sign
         if progress > 0.6 {
             let sign_x = center_x + 40;
-            let sign_y = center_y - 30;
+            let sign_y = center_y.saturating_sub(30);
 
             // Sign board
             let sign_color = Color::new(255, 255, 200);
@@ -202,8 +203,9 @@ impl Animation for BabyAnnouncementAnimation {
                     let x = sign_x + dx;
                     let y = sign_y + dy;
                     if x < grid.dot_width() && y < grid.dot_height() {
-                        if dy < 3 || dy > 27 || dx < 3 || dx > 57 {
-                            grid.set_dot_with_color(x, y, Color::new(139, 69, 19)); // Brown border
+                        if !(3..=27).contains(&dy) || !(3..=57).contains(&dx) {
+                            grid.set_dot_with_color(x, y, Color::new(139, 69, 19));
+                        // Brown border
                         } else {
                             grid.set_dot_with_color(x, y, sign_color);
                         }
@@ -222,7 +224,8 @@ impl Animation for BabyAnnouncementAnimation {
 
             for (i, color) in balloon_colors.iter().enumerate() {
                 let balloon_x = center_x as i32 + 50 + i as i32 * 25;
-                let balloon_y = center_y as i32 - 50 + (((self.elapsed.as_secs_f32() + i as f32) * 2.0).sin() * 5.0) as i32;
+                let balloon_y = center_y as i32 - 50
+                    + (((self.elapsed.as_secs_f32() + i as f32) * 2.0).sin() * 5.0) as i32;
 
                 // Balloon (oval)
                 for dy in -12..0 {
@@ -250,7 +253,7 @@ impl Animation for BabyAnnouncementAnimation {
         }
 
         // Hearts floating up
-        for i in 0..5 {
+        for i in 0..5usize {
             let heart_time = self.elapsed.as_secs_f32() - i as f32 * 0.2;
             if heart_time > 0.0 {
                 let heart_x = center_x as i32 + (i as i32 - 2) * 40;
@@ -261,8 +264,8 @@ impl Animation for BabyAnnouncementAnimation {
                 // Simple heart shape
                 for dy in -3i32..3i32 {
                     for dx in -4i32..4i32 {
-                        let is_heart = (dy <= 0 && (dx.abs() < 4 - dy.abs())) ||
-                                      (dy > 0 && dy < 3 && dx.abs() < 2);
+                        let is_heart = (dy <= 0 && (dx.abs() < 4 - dy.abs()))
+                            || (dy > 0 && dy < 3 && dx.abs() < 2);
                         if is_heart {
                             let x = (heart_x + dx).max(0) as usize;
                             let y = (heart_y + dy).max(0) as usize;

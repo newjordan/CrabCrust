@@ -24,11 +24,7 @@ pub struct MatrixRainAnimation {
     /// Decode threshold (0.0-1.0) - when to reveal real char
     decode_threshold: f32,
 
-    /// Speed variation factor (0.0-1.0) - higher = more chaos
-    noise_factor: f32,
-
-    /// Grid dimensions
-    width: usize,
+    /// Grid height in cells, used to scale fall speed.
     height: usize,
 
     /// All columns finished?
@@ -62,10 +58,9 @@ struct RainColumn {
 impl MatrixRainAnimation {
     /// Matrix character pool (Katakana + symbols)
     const MATRIX_CHARS: &'static [char] = &[
-        'ﾊ', 'ﾐ', 'ﾋ', 'ｰ', 'ｳ', 'ｼ', 'ﾅ', 'ﾓ', 'ﾆ', 'ｻ', 'ﾜ', 'ﾂ', 'ｵ', 'ﾘ', 'ｱ',
-        'ﾎ', 'ﾃ', 'ﾏ', 'ｹ', 'ﾒ', 'ｴ', 'ｶ', 'ｷ', 'ﾑ', 'ﾕ', 'ﾗ', 'ｾ', 'ﾈ', 'ｽ', 'ﾀ',
-        'ﾇ', 'ﾍ', ':', '・', '.', '"', '=', '*', '+', '-', '<', '>', '¦', '|',
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        'ﾊ', 'ﾐ', 'ﾋ', 'ｰ', 'ｳ', 'ｼ', 'ﾅ', 'ﾓ', 'ﾆ', 'ｻ', 'ﾜ', 'ﾂ', 'ｵ', 'ﾘ', 'ｱ', 'ﾎ', 'ﾃ', 'ﾏ',
+        'ｹ', 'ﾒ', 'ｴ', 'ｶ', 'ｷ', 'ﾑ', 'ﾕ', 'ﾗ', 'ｾ', 'ﾈ', 'ｽ', 'ﾀ', 'ﾇ', 'ﾍ', ':', '・', '.', '"',
+        '=', '*', '+', '-', '<', '>', '¦', '|', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
     ];
 
     /// Create new Matrix rain animation that decodes output text
@@ -82,8 +77,7 @@ impl MatrixRainAnimation {
     ) -> Self {
         let output_lines: Vec<String> = output.lines().map(|s| s.to_string()).collect();
 
-        // Calculate grid size needed
-        let width = output_lines.iter().map(|s| s.len()).max().unwrap_or(80);
+        // Fall speed is scaled by the number of text rows.
         let height = output_lines.len();
 
         // Create a column for each character position
@@ -93,7 +87,8 @@ impl MatrixRainAnimation {
             for (x, ch) in line.chars().enumerate() {
                 // Random speed with noise variation
                 let base_speed = 15.0; // cells per second
-                let noise = (Self::pseudo_random(x + y * 1000) as f32 / u32::MAX as f32) * 2.0 - 1.0;
+                let noise =
+                    (Self::pseudo_random(x + y * 1000) as f32 / u32::MAX as f32) * 2.0 - 1.0;
                 let speed = base_speed * (1.0 + noise * noise_factor);
 
                 // Random trail length (3-8 chars)
@@ -117,11 +112,14 @@ impl MatrixRainAnimation {
             elapsed: Duration::ZERO,
             duration,
             decode_threshold,
-            noise_factor,
-            width,
             height,
             all_decoded: false,
         }
+    }
+
+    /// Lines of command output this animation is decoding.
+    pub fn output_lines(&self) -> &[String] {
+        &self.output_lines
     }
 
     /// Get a random Matrix character
@@ -242,7 +240,8 @@ impl Animation for MatrixRainAnimation {
                     }
 
                     // Get random Matrix character
-                    let seed = column.x * 1000 + trail_y * 100 + self.elapsed.as_millis() as usize / 50;
+                    let seed =
+                        column.x * 1000 + trail_y * 100 + self.elapsed.as_millis() as usize / 50;
                     let matrix_char = Self::random_matrix_char(seed);
                     let pattern = Self::char_to_braille_pattern(matrix_char);
 
@@ -255,7 +254,9 @@ impl Animation for MatrixRainAnimation {
                             if (pattern & (1 << bit)) != 0 {
                                 // Random chance to show dot based on brightness
                                 let show_seed = seed + bit;
-                                if (Self::pseudo_random(show_seed) as f32 / u32::MAX as f32) < brightness {
+                                if (Self::pseudo_random(show_seed) as f32 / u32::MAX as f32)
+                                    < brightness
+                                {
                                     let (dx, dy) = match bit {
                                         0 => (0, 0),
                                         1 => (0, 1),
@@ -303,8 +304,8 @@ mod tests {
         let output = "On branch main\nYour branch is up to date".to_string();
         let anim = MatrixRainAnimation::new(output);
 
-        assert_eq!(anim.output_lines.len(), 2);
-        assert!(anim.columns.len() > 0);
+        assert_eq!(anim.output_lines().len(), 2);
+        assert!(!anim.columns.is_empty());
     }
 
     #[test]
@@ -313,8 +314,8 @@ mod tests {
         let mut anim = MatrixRainAnimation::with_params(
             output,
             Duration::from_secs(1),
-            0.5,  // Decode at 50%
-            0.1,  // Low noise
+            0.5, // Decode at 50%
+            0.1, // Low noise
         );
 
         // Initial state - nothing decoded

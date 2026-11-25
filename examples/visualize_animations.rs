@@ -1,7 +1,7 @@
 // Visualize what the animations look like (without needing a terminal)
 // This renders animation frames to stdout
 
-use crabcrust::{Animation, BrailleGrid, Color, SpinnerAnimation, RocketAnimation, SaveAnimation};
+use crabcrust::{Animation, BrailleGrid, RocketAnimation, SaveAnimation, SpinnerAnimation};
 use std::time::Duration;
 
 fn render_frame_to_text(grid: &BrailleGrid) -> String {

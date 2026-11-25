@@ -5,8 +5,8 @@ use clap::{Parser, Subcommand};
 use crabcrust::wrapper::git::GitWrapper;
 use crabcrust::{
     AnimationPlayer, BabyAnnouncementAnimation, ConfettiAnimation, DownloadAnimation,
-    FireworksAnimation, MergeAnimation, RabbitAnimation, RocketAnimation, SaveAnimation,
-    SpinnerAnimation, TrophyAnimation, MatrixRainAnimation,
+    FireworksAnimation, MatrixRainAnimation, MergeAnimation, RabbitAnimation, RocketAnimation,
+    SaveAnimation, SpinnerAnimation, TrophyAnimation,
 };
 
 #[cfg(any(feature = "gif", feature = "video"))]
@@ -106,7 +106,10 @@ fn main() -> Result<()> {
             std::process::exit(result.exit_code);
         }
 
-        Commands::Demo { animation, fullscreen } => {
+        Commands::Demo {
+            animation,
+            fullscreen,
+        } => {
             // Use inline mode by default for non-disruptive demos
             // Only use fullscreen if explicitly requested
             let mut player = if fullscreen {
@@ -159,10 +162,11 @@ fn main() -> Result<()> {
                 }
                 "matrix" => {
                     println!("🟢 Matrix Rain Demo - Decoding Reality...");
-                    let demo_text = "The Matrix has you...\nFollow the white rabbit.\nKnock, knock, Neo.";
+                    let demo_text =
+                        "The Matrix has you...\nFollow the white rabbit.\nKnock, knock, Neo.";
                     player.play(MatrixRainAnimation::new(demo_text.to_string()))?;
                 }
-                "all" | _ => {
+                _ => {
                     println!("🎮 Running all animations...\n");
 
                     println!("1. Spinner Animation");
@@ -206,7 +210,8 @@ fn main() -> Result<()> {
                     std::thread::sleep(Duration::from_millis(500));
 
                     println!("\n11. Matrix Rain - Decoding Reality...");
-                    let demo_text = "Wake up, Neo...\nThe Matrix has you.\nFollow the white rabbit.";
+                    let demo_text =
+                        "Wake up, Neo...\nThe Matrix has you.\nFollow the white rabbit.";
                     player.play(MatrixRainAnimation::new(demo_text.to_string()))?;
 
                     println!("\n✨ Demo complete! What a show!");
@@ -227,7 +232,13 @@ fn main() -> Result<()> {
             use crabcrust::video::converter;
 
             println!("🎬 Converting {} to Braille animation...", input.display());
-            println!("   Target size: {}x{} cells ({}x{} dots)", width, height, width * 2, height * 4);
+            println!(
+                "   Target size: {}x{} cells ({}x{} dots)",
+                width,
+                height,
+                width * 2,
+                height * 4
+            );
             println!("   Threshold: {}", threshold);
 
             // Detect file type and convert
@@ -242,6 +253,7 @@ fn main() -> Result<()> {
                 }
                 #[cfg(not(feature = "video"))]
                 {
+                    let _ = max_frames;
                     anyhow::bail!("Video file support requires the 'video' feature. Only GIF files are supported with the 'gif' feature.");
                 }
             };
@@ -287,7 +299,7 @@ fn main() -> Result<()> {
                 let mut player = AnimationPlayer::inline_auto()?;
 
                 // Randomly choose a refreshing animation
-                let animations = vec![
+                let animations = [
                     DmdAnimation::Invader,
                     DmdAnimation::Skull,
                     DmdAnimation::Sword,
@@ -306,7 +318,7 @@ fn main() -> Result<()> {
             execute!(stdout(), terminal::Clear(terminal::ClearType::All))?;
 
             // Get terminal size
-            let (cols, rows) = terminal::size()?;
+            let (_cols, rows) = terminal::size()?;
 
             // Calculate 2/3 position from bottom
             let target_row = (rows as f32 * (2.0 / 3.0)) as u16;

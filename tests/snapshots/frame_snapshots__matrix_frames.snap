@@ -1,0 +1,18 @@
+---
+source: tests/frame_snapshots.rs
+expression: "rollout(MatrixRainAnimation::new(\"git status\\nclean\".to_string()),\n&[80, 200, 400])"
+---
+--- 0ms ---
+digest 811c9dc5
+⢚⣸⣢⡘⢣⣸⣜⡹⣏⢂
+--- 80ms keep=true ---
+digest 811c9dc5
+⠙⣢⢜⣏⣜⣳⠅⣽⣰⠺
+--- 280ms keep=false ---
+digest 811c9dc5
+⠿⠑⢔⠀⠫⢔⣉⢔⣽⠫
+⢛⡌⡭⣉⠞⠀⠀⠀⠀⠀
+--- 680ms keep=false ---
+digest 811c9dc5
+⠿⠑⢔⠀⠫⢔⣉⢔⣽⠫
+⢛⡌⡭⣉⠞⠀⠀⠀⠀⠀

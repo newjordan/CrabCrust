@@ -14,7 +14,10 @@ fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
         eprintln!("Usage: {} <input_video> <output_name>", args[0]);
-        eprintln!("Example: {} ref/computer_fingers.mp4 computer_fingers", args[0]);
+        eprintln!(
+            "Example: {} ref/computer_fingers.mp4 computer_fingers",
+            args[0]
+        );
         std::process::exit(1);
     }
 
@@ -42,7 +45,10 @@ fn main() -> Result<()> {
     println!("Generated {}", output_path);
     println!("\nAdd to src/animation/mod.rs:");
     println!("  mod embedded_{};", output_name);
-    println!("  pub use embedded_{}::get_{}_frames;", output_name, output_name);
+    println!(
+        "  pub use embedded_{}::get_{}_frames;",
+        output_name, output_name
+    );
 
     Ok(())
 }
@@ -54,11 +60,15 @@ struct BrailleFrame {
     duration_ms: u32,
 }
 
-fn convert_video_to_frames(path: &str, width: usize, height: usize, threshold: u8) -> Result<Vec<BrailleFrame>> {
+fn convert_video_to_frames(
+    path: &str,
+    width: usize,
+    height: usize,
+    threshold: u8,
+) -> Result<Vec<BrailleFrame>> {
     use ffmpeg_next as ffmpeg;
 
-    let mut input = ffmpeg::format::input(&path)
-        .context("Failed to open video file")?;
+    let mut input = ffmpeg::format::input(&path).context("Failed to open video file")?;
 
     let input_stream = input
         .streams()
@@ -67,8 +77,9 @@ fn convert_video_to_frames(path: &str, width: usize, height: usize, threshold: u
 
     let video_stream_index = input_stream.index();
 
-    let context_decoder = ffmpeg::codec::context::Context::from_parameters(input_stream.parameters())
-        .context("Failed to create codec context")?;
+    let context_decoder =
+        ffmpeg::codec::context::Context::from_parameters(input_stream.parameters())
+            .context("Failed to create codec context")?;
 
     let mut decoder = context_decoder
         .decoder()
@@ -83,7 +94,8 @@ fn convert_video_to_frames(path: &str, width: usize, height: usize, threshold: u
         (width * 2) as u32,
         (height * 4) as u32,
         ffmpeg::software::scaling::Flags::BILINEAR,
-    ).context("Failed to create scaler")?;
+    )
+    .context("Failed to create scaler")?;
 
     let mut braille_frames = Vec::new();
 
@@ -96,15 +108,18 @@ fn convert_video_to_frames(path: &str, width: usize, height: usize, threshold: u
 
     let process_frames = |decoder: &mut ffmpeg::decoder::Video,
                           braille_frames: &mut Vec<BrailleFrame>,
-                          scaler: &mut ffmpeg::software::scaling::Context| -> Result<()> {
+                          scaler: &mut ffmpeg::software::scaling::Context|
+     -> Result<()> {
         let mut decoded = ffmpeg::util::frame::video::Video::empty();
         while decoder.receive_frame(&mut decoded).is_ok() {
             let mut gray_frame = ffmpeg::util::frame::video::Video::empty();
-            scaler.run(&decoded, &mut gray_frame)
+            scaler
+                .run(&decoded, &mut gray_frame)
                 .context("Failed to scale frame")?;
 
             let data = gray_frame.data(0);
-            let patterns = convert_to_braille(data, width * 2, height * 4, threshold, width, height);
+            let patterns =
+                convert_to_braille(data, width * 2, height * 4, threshold, width, height);
 
             braille_frames.push(BrailleFrame {
                 patterns,
@@ -118,7 +133,9 @@ fn convert_video_to_frames(path: &str, width: usize, height: usize, threshold: u
 
     for (stream, packet) in input.packets() {
         if stream.index() == video_stream_index {
-            decoder.send_packet(&packet).context("Failed to send packet")?;
+            decoder
+                .send_packet(&packet)
+                .context("Failed to send packet")?;
             process_frames(&mut decoder, &mut braille_frames, &mut scaler)?;
         }
     }
@@ -186,13 +203,25 @@ fn generate_rust_code(name: &str, frames: &[BrailleFrame]) -> String {
 
     // Generate frame data as const arrays
     code.push_str(&format!("const FRAME_COUNT: usize = {};\n", frames.len()));
-    code.push_str(&format!("const FRAME_WIDTH: usize = {};\n", frames[0].width));
-    code.push_str(&format!("const FRAME_HEIGHT: usize = {};\n", frames[0].height));
-    code.push_str(&format!("const FRAME_DURATION_MS: u32 = {};\n\n", frames[0].duration_ms));
+    code.push_str(&format!(
+        "const FRAME_WIDTH: usize = {};\n",
+        frames[0].width
+    ));
+    code.push_str(&format!(
+        "const FRAME_HEIGHT: usize = {};\n",
+        frames[0].height
+    ));
+    code.push_str(&format!(
+        "const FRAME_DURATION_MS: u32 = {};\n\n",
+        frames[0].duration_ms
+    ));
 
     // Generate pattern data as a single large const array
     let total_patterns: usize = frames.iter().map(|f| f.patterns.len()).sum();
-    code.push_str(&format!("const PATTERN_DATA: [u8; {}] = [\n", total_patterns));
+    code.push_str(&format!(
+        "const PATTERN_DATA: [u8; {}] = [\n",
+        total_patterns
+    ));
 
     for (i, frame) in frames.iter().enumerate() {
         code.push_str(&format!("    // Frame {}\n    ", i));
@@ -208,8 +237,14 @@ fn generate_rust_code(name: &str, frames: &[BrailleFrame]) -> String {
 
     // Generate function to create frames
     let upper_name = name.to_uppercase();
-    code.push_str(&format!("/// Get pre-converted frames for {} animation\n", name));
-    code.push_str(&format!("pub fn get_{}_frames() -> Vec<BrailleFrame> {{\n", name));
+    code.push_str(&format!(
+        "/// Get pre-converted frames for {} animation\n",
+        name
+    ));
+    code.push_str(&format!(
+        "pub fn get_{}_frames() -> Vec<BrailleFrame> {{\n",
+        name
+    ));
     code.push_str("    let patterns_per_frame = FRAME_WIDTH * FRAME_HEIGHT;\n");
     code.push_str("    (0..FRAME_COUNT)\n");
     code.push_str("        .map(|i| {\n");

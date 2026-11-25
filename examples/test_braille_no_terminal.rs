@@ -9,8 +9,13 @@ fn main() {
     // Create a small grid
     let mut grid = BrailleGrid::new(40, 10);
 
-    println!("✓ Created BrailleGrid: {}×{} cells = {}×{} dots",
-        grid.width(), grid.height(), grid.dot_width(), grid.dot_height());
+    println!(
+        "✓ Created BrailleGrid: {}×{} cells = {}×{} dots",
+        grid.width(),
+        grid.height(),
+        grid.dot_width(),
+        grid.dot_height()
+    );
 
     // Test 1: Set individual dots
     grid.set_dot(0, 0);
@@ -41,13 +46,13 @@ fn main() {
         let x = center_x as f32 + trail_angle.cos() * 15.0;
         let y = center_y as f32 + trail_angle.sin() * 15.0;
 
-        if x >= 0.0 && y >= 0.0 && (x as usize) < grid.dot_width() && (y as usize) < grid.dot_height() {
+        if x >= 0.0
+            && y >= 0.0
+            && (x as usize) < grid.dot_width()
+            && (y as usize) < grid.dot_height()
+        {
             let fade = 1.0 - (i as f32 / 8.0) * 0.7;
-            let color = Color::new(
-                (0 as f32) as u8,
-                (255.0 * fade) as u8,
-                (255.0 * fade) as u8,
-            );
+            let color = Color::new((0 as f32) as u8, (255.0 * fade) as u8, (255.0 * fade) as u8);
             grid.set_dot_with_color(x as usize, y as usize, color);
         }
     }
@@ -59,14 +64,7 @@ fn main() {
     for y in 0..5 {
         print!("  ");
         for x in 0..40 {
-            let ch = grid.get_char(x, y);
-            let color = grid.get_color(x, y);
-            if let Some(c) = color {
-                // Show colored character representation
-                print!("{}", ch);
-            } else {
-                print!("{}", ch);
-            }
+            print!("{}", grid.get_char(x, y));
         }
         println!();
     }

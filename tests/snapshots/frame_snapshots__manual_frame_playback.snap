@@ -1,0 +1,15 @@
+---
+source: tests/frame_snapshots.rs
+expression: "rollout(animation, &[50, 50])"
+---
+--- 0ms ---
+digest 811c9dc5
+⠁⠈
+⠀⢀
+--- 50ms keep=true ---
+digest 811c9dc5
+⣿⣿
+⣿⣿
+--- 100ms keep=false ---
+digest 811c9dc5
+(blank)

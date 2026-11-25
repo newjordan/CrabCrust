@@ -20,7 +20,7 @@ struct Particle {
     lifetime: f32,
 }
 
-/// Fireworks explosion animation
+/// Burst of fireworks for a successful push or commit.
 pub struct FireworksAnimation {
     elapsed: Duration,
     total_duration: Duration,
@@ -28,6 +28,7 @@ pub struct FireworksAnimation {
 }
 
 impl FireworksAnimation {
+    /// Launch several shells across `duration`.
     pub fn new(duration: Duration) -> Self {
         let mut fireworks = Vec::new();
 
@@ -54,11 +55,11 @@ impl FireworksAnimation {
         let mut particles = Vec::new();
 
         let colors = [
-            Color::new(255, 0, 0),     // Red
-            Color::new(255, 215, 0),   // Gold
-            Color::new(0, 255, 0),     // Green
-            Color::new(0, 255, 255),   // Cyan
-            Color::new(255, 0, 255),   // Magenta
+            Color::new(255, 0, 0),   // Red
+            Color::new(255, 215, 0), // Gold
+            Color::new(0, 255, 0),   // Green
+            Color::new(0, 255, 255), // Cyan
+            Color::new(255, 0, 255), // Magenta
         ];
 
         let color = colors[color_index % colors.len()];
@@ -163,7 +164,7 @@ impl Animation for FireworksAnimation {
 
                     if x < grid.dot_width() && y < grid.dot_height() {
                         // Fade color based on lifetime
-                        let alpha = particle.lifetime.max(0.0).min(1.0);
+                        let alpha = particle.lifetime.clamp(0.0, 1.0);
                         let color = Color::new(
                             (particle.color.r as f32 * alpha) as u8,
                             (particle.color.g as f32 * alpha) as u8,

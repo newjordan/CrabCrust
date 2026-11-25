@@ -1,39 +1,103 @@
-// Animation module for procedural terminal animations
+//! Procedural animations and the terminal player.
+//!
+//! Implement [`Animation`] to draw into a [`BrailleGrid`](crate::BrailleGrid).
+//! [`render_frame`] samples one frame without opening a terminal.
+//! [`AnimationPlayer`] plays frames on the tty.
+//!
+//! `get_computer_fingers_frames` is exported when the `gif` or `video`
+//! feature is enabled. It returns the embedded computer-fingers DMD clip.
 
-mod spinner;
-mod rocket;
-mod save;
-mod download;
-mod merge;
-mod rabbit;
-mod fireworks;
 mod baby;
 mod confetti;
-mod trophy;
+mod download;
+#[cfg(any(feature = "gif", feature = "video"))]
+mod embedded_computer_fingers;
+mod fireworks;
 mod framebased;
 mod matrixrain;
-mod embedded_computer_fingers;
+mod merge;
+mod rabbit;
+mod rocket;
+mod save;
+mod spinner;
+mod trophy;
 
-pub use spinner::SpinnerAnimation;
-pub use rocket::RocketAnimation;
-pub use save::SaveAnimation;
-pub use download::DownloadAnimation;
-pub use merge::MergeAnimation;
-pub use rabbit::RabbitAnimation;
-pub use fireworks::FireworksAnimation;
 pub use baby::BabyAnnouncementAnimation;
 pub use confetti::ConfettiAnimation;
-pub use trophy::TrophyAnimation;
+pub use download::DownloadAnimation;
+#[cfg(any(feature = "gif", feature = "video"))]
+pub use embedded_computer_fingers::get_computer_fingers_frames;
+pub use fireworks::FireworksAnimation;
 pub use framebased::FrameBasedAnimation;
 pub use matrixrain::MatrixRainAnimation;
-pub use embedded_computer_fingers::get_computer_fingers_frames;
+pub use merge::MergeAnimation;
+pub use rabbit::RabbitAnimation;
+pub use rocket::RocketAnimation;
+pub use save::SaveAnimation;
+pub use spinner::SpinnerAnimation;
+pub use trophy::TrophyAnimation;
 
 use crate::braille::BrailleGrid;
 use crate::rendering::{RenderMode, TerminalRenderer};
 use anyhow::Result;
 use std::time::{Duration, Instant};
 
-/// Trait for animations
+/// Draw `animation` into a new grid of `width` by `height` cells.
+///
+/// The animation is not advanced. Call [`Animation::update`] first when the
+/// frame should reflect elapsed time.
+///
+/// # Examples
+///
+/// ```
+/// use std::time::Duration;
+/// use crabcrust::animation::{render_frame, RocketAnimation};
+/// use crabcrust::Animation;
+///
+/// let mut rocket = RocketAnimation::new(Duration::from_secs(2));
+/// rocket.update(Duration::from_millis(400));
+/// let grid = render_frame(&rocket, 40, 16);
+/// assert_eq!(grid.width(), 40);
+/// ```
+pub fn render_frame(animation: &impl Animation, width: usize, height: usize) -> BrailleGrid {
+    let mut grid = BrailleGrid::new(width, height);
+    animation.render(&mut grid);
+    grid
+}
+
+/// A procedural terminal animation.
+///
+/// `update` advances state by `delta_time` and returns `true` while the
+/// animation should keep playing. `render` paints the current state into a
+/// grid. `name` is a stable label for logs and demos.
+///
+/// # Examples
+///
+/// ```
+/// use std::time::Duration;
+/// use crabcrust::{Animation, BrailleGrid, Color};
+///
+/// struct Blink { on: bool }
+///
+/// impl Animation for Blink {
+///     fn update(&mut self, _: Duration) -> bool {
+///         self.on = !self.on;
+///         true
+///     }
+///
+///     fn render(&self, grid: &mut BrailleGrid) {
+///         if self.on {
+///             grid.set_dot_with_color(1, 1, Color::GREEN);
+///         }
+///     }
+///
+///     fn name(&self) -> &str { "blink" }
+/// }
+///
+/// let mut blink = Blink { on: false };
+/// assert!(blink.update(Duration::from_millis(16)));
+/// assert_eq!(blink.name(), "blink");
+/// ```
 pub trait Animation {
     /// Update animation state
     /// Returns true if animation should continue, false if done
@@ -73,7 +137,7 @@ impl AnimationPlayer {
         let (_, terminal_height) = crossterm::terminal::size()?;
 
         // Use 1/3 of terminal height, with reasonable bounds
-        let height = (terminal_height / 3).max(15).min(40);
+        let height = (terminal_height / 3).clamp(15, 40);
 
         Self::with_mode(RenderMode::Inline { height })
     }
@@ -124,11 +188,7 @@ impl AnimationPlayer {
     }
 
     /// Play animation for a specific duration
-    pub fn play_for<A: Animation>(
-        &mut self,
-        mut animation: A,
-        duration: Duration,
-    ) -> Result<()> {
+    pub fn play_for<A: Animation>(&mut self, mut animation: A, duration: Duration) -> Result<()> {
         let (width, height) = self.renderer.size()?;
         let mut grid = BrailleGrid::new(width as usize, height as usize);
 
