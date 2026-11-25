@@ -4,20 +4,28 @@ This directory contains example code and demo materials for CrabCrust.
 
 ## Code Examples
 
+- **`text_frames.rs`** - Print a text capture of every built-in animation (no tty)
+- **`wrap_command.rs`** - Run a command with `CommandExecutor` and draw the result frame as text
 - **`custom_animation.rs`** - Create your own custom Braille animation
 - **`git_wrapper.rs`** - Use the GitWrapper to add animations to git commands
 - **`test_braille_no_terminal.rs`** - Test Braille rendering without terminal dependency
-- **`visualize_animations.rs`** - Visualize and debug animations
-- **`pac_inspector.rs`** - Inspect Pin2DMD .pac files *(experimental)*
+- **`visualize_animations.rs`** - Print several frames of the spinner, rocket, and save animations
+- **`pac_inspector.rs`** - Inspect Pin2DMD .pac files *(experimental, needs `--features video`)*
 
 ## Running Examples
 
 ```bash
-# Run an example
+# Headless text captures (no alternate screen)
+cargo run --example text_frames
+
+# Wrap a command and print the result frame
+cargo run --example wrap_command
+
+# Play a custom animation in the terminal
 cargo run --example custom_animation
 
-# Run with features
-cargo run --features video --example pac_inspector
+# Inspect a Pin2DMD package
+cargo run --features video --example pac_inspector -- path/to/file.pac
 ```
 
 ## Demo Materials

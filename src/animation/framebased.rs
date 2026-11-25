@@ -1,7 +1,8 @@
-// Frame-based animation for pre-rendered content
-//
-// This animation type plays back pre-converted frames, perfect for
-// DMD animations, video clips, and other pre-rendered content.
+//! Playback of pre-rendered braille frames.
+//!
+//! Use this for DMD clips and for frames produced by the `gif` / `video`
+//! converters. [`FrameBasedAnimation::add_frame`] accepts raw dot patterns
+//! and does not need those features.
 
 use crate::animation::Animation;
 use crate::braille::BrailleGrid;
@@ -40,7 +41,13 @@ impl FrameBasedAnimation {
     }
 
     /// Add a frame manually
-    pub fn add_frame(&mut self, patterns: Vec<u8>, width: usize, height: usize, duration: Duration) {
+    pub fn add_frame(
+        &mut self,
+        patterns: Vec<u8>,
+        width: usize,
+        height: usize,
+        duration: Duration,
+    ) {
         self.frames.push(FrameData {
             patterns,
             width,
@@ -152,12 +159,7 @@ impl Animation for FrameBasedAnimation {
         if self.loop_animation {
             None
         } else {
-            Some(
-                self.frames
-                    .iter()
-                    .map(|f| f.duration)
-                    .sum()
-            )
+            Some(self.frames.iter().map(|f| f.duration).sum())
         }
     }
 }

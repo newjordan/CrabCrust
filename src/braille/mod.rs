@@ -1,52 +1,77 @@
-// Braille character rendering for high-resolution terminal graphics
-//
-// Braille characters provide 2×4 dot patterns per terminal cell,
-// giving us 4× vertical resolution for smooth curves!
-//
-// Dot positions in a Braille character:
-//   1 4
-//   2 5
-//   3 6
-//   7 8
-//
-// Unicode range: U+2800 to U+28FF (256 patterns)
+//! Braille character rendering for high-resolution terminal graphics.
+//!
+//! Braille characters provide 2×4 dot patterns per terminal cell,
+//! giving 4× vertical resolution for smooth curves.
+//!
+//! Dot positions in a Braille character:
+//!
+//! ```text
+//! 1 4
+//! 2 5
+//! 3 6
+//! 7 8
+//! ```
+//!
+//! Unicode range: U+2800 to U+28FF (256 patterns).
 
-/// RGB Color for terminal rendering
+use std::fmt;
+
+/// RGB color for terminal rendering.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Color {
+    /// Red channel, 0–255.
     pub r: u8,
+    /// Green channel, 0–255.
     pub g: u8,
+    /// Blue channel, 0–255.
     pub b: u8,
 }
 
 impl Color {
-    /// Create a new RGB color
+    /// Create a color from 8-bit channels.
     pub const fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
     }
 
-    /// Common colors
+    /// White, `(255, 255, 255)`.
     pub const WHITE: Color = Color::new(255, 255, 255);
+    /// Black, `(0, 0, 0)`.
     pub const BLACK: Color = Color::new(0, 0, 0);
+    /// Red, `(255, 0, 0)`.
     pub const RED: Color = Color::new(255, 0, 0);
+    /// Green, `(0, 255, 0)`.
     pub const GREEN: Color = Color::new(0, 255, 0);
+    /// Blue, `(0, 0, 255)`.
     pub const BLUE: Color = Color::new(0, 0, 255);
+    /// Yellow, `(255, 255, 0)`.
     pub const YELLOW: Color = Color::new(255, 255, 0);
+    /// Cyan, `(0, 255, 255)`.
     pub const CYAN: Color = Color::new(0, 255, 255);
+    /// Magenta, `(255, 0, 255)`.
     pub const MAGENTA: Color = Color::new(255, 0, 255);
 }
 
-/// Braille dot positions
+/// One of the eight dots inside a braille cell.
+///
+/// The discriminant is the bit mask used by [`dots_to_char`].
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BrailleDot {
+    /// Top-left dot.
     Dot1 = 0b00000001,
+    /// Second-row left dot.
     Dot2 = 0b00000010,
+    /// Third-row left dot.
     Dot3 = 0b00000100,
+    /// Top-right dot.
     Dot4 = 0b00001000,
+    /// Second-row right dot.
     Dot5 = 0b00010000,
+    /// Third-row right dot.
     Dot6 = 0b00100000,
+    /// Bottom-left dot.
     Dot7 = 0b01000000,
+    /// Bottom-right dot.
     Dot8 = 0b10000000,
 }
 
@@ -340,6 +365,78 @@ impl BrailleGrid {
         let index = cell_y * self.width + cell_x;
         self.patterns[index] == 0
     }
+
+    /// Render every cell, including empty braille blanks, with one row per line.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crabcrust::BrailleGrid;
+    /// let mut grid = BrailleGrid::new(2, 1);
+    /// grid.set_dot(0, 0);
+    /// assert_eq!(grid.to_plain_text(), "⠁⠀\n");
+    /// ```
+    pub fn to_plain_text(&self) -> String {
+        let mut out = String::with_capacity((self.width + 1) * self.height);
+        for y in 0..self.height {
+            for x in 0..self.width {
+                out.push(self.get_char(x, y));
+            }
+            out.push('\n');
+        }
+        out
+    }
+
+    /// Like [`to_plain_text`](Self::to_plain_text), cropped to filled cells.
+    ///
+    /// Returns an empty string when no dot is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crabcrust::BrailleGrid;
+    /// let mut grid = BrailleGrid::new(4, 2);
+    /// grid.set_dot(0, 0);
+    /// assert_eq!(grid.to_trimmed_text(), "⠁\n");
+    /// ```
+    pub fn to_trimmed_text(&self) -> String {
+        let mut min_x = self.width;
+        let mut min_y = self.height;
+        let mut max_x = 0;
+        let mut max_y = 0;
+        let mut any = false;
+
+        for y in 0..self.height {
+            for x in 0..self.width {
+                if !self.is_empty(x, y) {
+                    any = true;
+                    min_x = min_x.min(x);
+                    min_y = min_y.min(y);
+                    max_x = max_x.max(x);
+                    max_y = max_y.max(y);
+                }
+            }
+        }
+
+        if !any {
+            return String::new();
+        }
+
+        let mut out = String::new();
+        for y in min_y..=max_y {
+            for x in min_x..=max_x {
+                out.push(self.get_char(x, y));
+            }
+            out.push('\n');
+        }
+        out
+    }
+}
+
+impl fmt::Display for BrailleGrid {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.to_plain_text())
+    }
 }
 
 #[cfg(test)]
@@ -398,5 +495,36 @@ mod tests {
         grid.set_dot_with_color(0, 0, color);
         assert_eq!(grid.get_char(0, 0), '⠁');
         assert_eq!(grid.get_color(0, 0), Some(color));
+    }
+
+    #[test]
+    fn out_of_bounds_dots_are_ignored() {
+        let mut grid = BrailleGrid::new(2, 2);
+        grid.set_dot(100, 100);
+        grid.set_dot_with_color(80, 1, Color::RED);
+        assert_eq!(grid.to_trimmed_text(), "");
+        assert!(grid.get_color(0, 0).is_none());
+        assert_eq!(grid.get_char(9, 9), '⠀');
+    }
+
+    #[test]
+    fn circle_and_colored_line_paint_pixels() {
+        let mut grid = BrailleGrid::new(20, 10);
+        grid.draw_circle(20, 16, 8, Color::CYAN);
+        grid.draw_line_with_color(0, 0, 10, 6, Color::YELLOW);
+        assert!(!grid.to_trimmed_text().is_empty());
+        assert!(grid.get_color(0, 0).is_some());
+    }
+
+    #[test]
+    fn clear_drops_color() {
+        let mut grid = BrailleGrid::new(4, 2);
+        grid.set_dot_with_color(1, 1, Color::MAGENTA);
+        grid.clear();
+        assert!(grid.get_color(0, 0).is_none());
+        assert_eq!(
+            grid.to_plain_text().chars().filter(|c| *c != '\n').count(),
+            8
+        );
     }
 }

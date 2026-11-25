@@ -1,7 +1,7 @@
-// Video and image conversion utilities for CrabCrust
-//
-// This module provides functions to convert video frames and images
-// into Braille dot patterns for terminal rendering.
+//! Convert images, GIFs, and video frames into braille dots.
+//!
+//! GIF and still-image helpers need the `gif` feature. Video files need
+//! the `video` feature and a system FFmpeg install.
 
 #[cfg(any(feature = "gif", feature = "video"))]
 use crate::braille::BrailleGrid;

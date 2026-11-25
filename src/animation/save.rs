@@ -4,7 +4,7 @@ use super::Animation;
 use crate::braille::{BrailleGrid, Color};
 use std::time::Duration;
 
-/// Save/commit animation with floppy disk
+/// Floppy-disk save used for `git commit`.
 pub struct SaveAnimation {
     elapsed: Duration,
     duration: Duration,
@@ -20,6 +20,7 @@ enum Phase {
 }
 
 impl SaveAnimation {
+    /// Play the disk, progress bar, and checkmark across `duration`.
     pub fn new(duration: Duration) -> Self {
         Self {
             elapsed: Duration::ZERO,
@@ -103,7 +104,10 @@ impl Animation for SaveAnimation {
         }
 
         // Progress bar (Phase 2)
-        if matches!(self.phase, Phase::ProgressBar | Phase::Checkmark | Phase::Done) {
+        if matches!(
+            self.phase,
+            Phase::ProgressBar | Phase::Checkmark | Phase::Done
+        ) {
             let bar_y = bottom + 4;
             let bar_width = right - left;
             let bar_left = left;
@@ -112,8 +116,7 @@ impl Animation for SaveAnimation {
             let phase_progress = if matches!(self.phase, Phase::ProgressBar) {
                 ((self.elapsed.as_secs_f32() - self.duration.as_secs_f32() * 0.3)
                     / (self.duration.as_secs_f32() * 0.4))
-                    .min(1.0)
-                    .max(0.0)
+                    .clamp(0.0, 1.0)
             } else {
                 1.0
             };

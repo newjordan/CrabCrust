@@ -3,13 +3,14 @@ use super::Animation;
 use crate::braille::{BrailleGrid, Color};
 use std::time::Duration;
 
-/// White rabbit hopping across the screen
+/// White rabbit hopping across the screen ("I'm late!").
 pub struct RabbitAnimation {
     elapsed: Duration,
     total_duration: Duration,
 }
 
 impl RabbitAnimation {
+    /// Hop the rabbit across the grid for `duration`.
     pub fn new(duration: Duration) -> Self {
         Self {
             elapsed: Duration::ZERO,
@@ -36,7 +37,8 @@ impl Animation for RabbitAnimation {
         let center_y = grid.dot_height() / 2;
 
         // Rabbit hops from left to right
-        let rabbit_x = (progress * grid.dot_width() as f32 * 1.2 - grid.dot_width() as f32 * 0.1) as i32;
+        let rabbit_x =
+            (progress * grid.dot_width() as f32 * 1.2 - grid.dot_width() as f32 * 0.1) as i32;
 
         // Hopping motion (sine wave)
         let hop_height = ((progress * 10.0).sin().abs() * 30.0) as i32;
@@ -134,7 +136,7 @@ impl Animation for RabbitAnimation {
 
             // Clock hands
             for i in 0..8 {
-                let x = (clock_x + i * 1).max(0) as usize;
+                let x = (clock_x + i).max(0) as usize;
                 let y = clock_y.max(0) as usize;
                 if x < grid.dot_width() && y < grid.dot_height() {
                     grid.set_dot_with_color(x, y, black);

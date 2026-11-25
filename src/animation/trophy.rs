@@ -3,13 +3,14 @@ use super::Animation;
 use crate::braille::{BrailleGrid, Color};
 use std::time::Duration;
 
-/// Trophy celebration animation with sparkles
+/// Trophy and sparkles for a winning command.
 pub struct TrophyAnimation {
     elapsed: Duration,
     total_duration: Duration,
 }
 
 impl TrophyAnimation {
+    /// Raise the trophy across `duration`.
     pub fn new(duration: Duration) -> Self {
         Self {
             elapsed: Duration::ZERO,
@@ -204,11 +205,7 @@ impl Animation for TrophyAnimation {
                         let py = y as usize;
                         if px < grid.dot_width() && py < grid.dot_height() {
                             let color_intensity = 255 - ((r as f32 / ray_length * 100.0) as u8);
-                            grid.set_dot_with_color(
-                                px,
-                                py,
-                                Color::new(255, color_intensity, 0),
-                            );
+                            grid.set_dot_with_color(px, py, Color::new(255, color_intensity, 0));
                         }
                     }
                 }
@@ -241,7 +238,7 @@ impl Animation for TrophyAnimation {
             let text_y = podium_y + 8;
             for dx in -3..4 {
                 let x = (center_x as i32 + dx).max(0) as usize;
-                let y = text_y as usize;
+                let y = text_y;
                 if x < grid.dot_width() && y < grid.dot_height() {
                     grid.set_dot_with_color(x, y, Color::new(255, 255, 0));
                 }

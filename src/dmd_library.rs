@@ -1,39 +1,50 @@
-// DMD Animation Library
-//
-// Pre-converted pinball Dot Matrix Display animations for git commands.
-// This module provides curated DMD animations with lazy loading and caching.
+//! Curated pinball DMD clips for git commands.
+//!
+//! [`list_dmds`] and [`git_command_to_dmd`] describe the library without
+//! reading files. [`load_dmd_animation`] decodes a clip and needs the `gif`
+//! or `video` feature.
 
-use crate::animation::FrameBasedAnimation;
+#[cfg(any(feature = "gif", feature = "video"))]
+use crate::animation::{get_computer_fingers_frames, FrameBasedAnimation};
+#[cfg(any(feature = "gif", feature = "video"))]
 use anyhow::Result;
-use std::collections::HashMap;
+#[cfg(any(feature = "gif", feature = "video"))]
 use std::path::PathBuf;
-use std::sync::OnceLock;
 
 #[cfg(any(feature = "gif", feature = "video"))]
 use crate::video::converter;
 
-// Pre-converted embedded animations (works globally without runtime FFmpeg)
-use crate::animation::get_computer_fingers_frames;
-
-/// DMD animation metadata
+/// Metadata for one DMD clip.
 #[derive(Debug, Clone)]
 pub struct DmdInfo {
+    /// Short identifier, such as `"invader"`.
     pub name: &'static str,
+    /// Path of the source asset, relative to the repository root.
     pub file_path: &'static str,
+    /// Human-readable summary of the clip.
     pub description: &'static str,
+    /// Frame count when it is known at compile time. Zero means "count at load".
     pub frames: usize,
 }
 
-/// Available DMD animations
+/// DMD clips that git wrappers can play.
 #[derive(Copy, Clone)]
 pub enum DmdAnimation {
+    /// Monster Bash invader.
     Invader,
+    /// Monster Bash skull.
     Skull,
+    /// Monster Bash sword.
     Sword,
+    /// Eyes looking around, first take.
     EyesLook1,
+    /// Eyes looking around, second take.
     EyesLook2,
+    /// Chomping teeth.
     TeethChomp,
+    /// Terminator lock-in startup.
     TerminatorStartup,
+    /// Hands typing on a keyboard.
     ComputerFingers,
 }
 
@@ -112,15 +123,12 @@ pub fn git_command_to_dmd(command: &str) -> Option<DmdAnimation> {
     match command {
         "status" | "diff" | "log" => Some(DmdAnimation::EyesLook1), // Eyes watching/looking at status
         "pull" | "fetch" | "clone" => Some(DmdAnimation::Invader),  // Quick & energetic invader!
-        "push" => Some(DmdAnimation::ComputerFingers),               // Computer fingers typing - push complete!
-        "commit" => Some(DmdAnimation::TeethChomp),                  // Chomping down on that commit
-        "merge" => Some(DmdAnimation::EyesLook2),                    // Eyes watching the merge
+        "push" => Some(DmdAnimation::ComputerFingers), // Computer fingers typing - push complete!
+        "commit" => Some(DmdAnimation::TeethChomp),    // Chomping down on that commit
+        "merge" => Some(DmdAnimation::EyesLook2),      // Eyes watching the merge
         _ => None,
     }
 }
-
-/// DMD animation cache (lazy-loaded)
-static DMD_CACHE: OnceLock<HashMap<String, Vec<u8>>> = OnceLock::new();
 
 /// Load a DMD animation by name
 #[cfg(any(feature = "gif", feature = "video"))]
@@ -130,7 +138,10 @@ pub fn load_dmd_animation(dmd: DmdAnimation, loop_animation: bool) -> Result<Fra
     // Check for pre-converted embedded animations first (works globally without FFmpeg)
     if let DmdAnimation::ComputerFingers = dmd {
         let frames = get_computer_fingers_frames();
-        return Ok(FrameBasedAnimation::from_braille_frames(frames, loop_animation));
+        return Ok(FrameBasedAnimation::from_braille_frames(
+            frames,
+            loop_animation,
+        ));
     }
 
     // Fall back to file-based loading for other animations
@@ -168,12 +179,18 @@ pub fn load_dmd_animation(dmd: DmdAnimation, loop_animation: bool) -> Result<Fra
         anyhow::bail!("Unsupported file format: {}", info.file_path)
     };
 
-    Ok(FrameBasedAnimation::from_braille_frames(frames, loop_animation))
+    Ok(FrameBasedAnimation::from_braille_frames(
+        frames,
+        loop_animation,
+    ))
 }
 
 /// Load a DMD animation for a specific git command
 #[cfg(any(feature = "gif", feature = "video"))]
-pub fn load_dmd_for_git_command(command: &str, loop_animation: bool) -> Option<Result<FrameBasedAnimation>> {
+pub fn load_dmd_for_git_command(
+    command: &str,
+    loop_animation: bool,
+) -> Option<Result<FrameBasedAnimation>> {
     git_command_to_dmd(command).map(|dmd| load_dmd_animation(dmd, loop_animation))
 }
 
@@ -193,11 +210,26 @@ mod tests {
 
     #[test]
     fn test_git_command_mapping() {
-        assert!(matches!(git_command_to_dmd("status"), Some(DmdAnimation::EyesLook1)));
-        assert!(matches!(git_command_to_dmd("push"), Some(DmdAnimation::ComputerFingers)));
-        assert!(matches!(git_command_to_dmd("pull"), Some(DmdAnimation::Invader)));
-        assert!(matches!(git_command_to_dmd("commit"), Some(DmdAnimation::TeethChomp)));
-        assert!(matches!(git_command_to_dmd("merge"), Some(DmdAnimation::EyesLook2)));
+        assert!(matches!(
+            git_command_to_dmd("status"),
+            Some(DmdAnimation::EyesLook1)
+        ));
+        assert!(matches!(
+            git_command_to_dmd("push"),
+            Some(DmdAnimation::ComputerFingers)
+        ));
+        assert!(matches!(
+            git_command_to_dmd("pull"),
+            Some(DmdAnimation::Invader)
+        ));
+        assert!(matches!(
+            git_command_to_dmd("commit"),
+            Some(DmdAnimation::TeethChomp)
+        ));
+        assert!(matches!(
+            git_command_to_dmd("merge"),
+            Some(DmdAnimation::EyesLook2)
+        ));
         assert!(git_command_to_dmd("unknown").is_none());
     }
 

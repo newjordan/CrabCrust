@@ -4,7 +4,7 @@ use super::Animation;
 use crate::braille::{BrailleGrid, Color};
 use std::time::Duration;
 
-/// Rocket launching upward animation
+/// Rocket launch used for a successful `git push`.
 pub struct RocketAnimation {
     position_y: f32,
     elapsed: Duration,
@@ -13,12 +13,13 @@ pub struct RocketAnimation {
 }
 
 impl RocketAnimation {
+    /// Launch a rocket that finishes after `duration`.
     pub fn new(duration: Duration) -> Self {
         // Generate random stars
         let mut stars = Vec::new();
         for i in 0..50 {
             let x = (i * 17) % 160; // Pseudo-random x
-            let y = (i * 31) % 80;  // Pseudo-random y
+            let y = (i * 31) % 80; // Pseudo-random y
             stars.push((x, y));
         }
 

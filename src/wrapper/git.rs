@@ -1,9 +1,13 @@
-// Git-specific wrapper with custom animations
+//! Git wrapper that maps subcommands onto CrabCrust animations.
+//!
+//! `commit`, `push`, `pull`, `merge`, and `status` each have a theme.
+//! Any other subcommand uses [`CliWrapper`](super::CliWrapper)'s default
+//! spinner and save animation.
 
 use super::CliWrapper;
 use crate::animation::{
-    BabyAnnouncementAnimation, ConfettiAnimation, DownloadAnimation, FireworksAnimation,
-    MergeAnimation, RabbitAnimation, RocketAnimation, SaveAnimation, TrophyAnimation,
+    BabyAnnouncementAnimation, ConfettiAnimation, FireworksAnimation, MergeAnimation,
+    RabbitAnimation, RocketAnimation, SaveAnimation, TrophyAnimation,
 };
 use crate::executor::{CommandExecutor, CommandResult};
 use anyhow::Result;
@@ -12,7 +16,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 #[cfg(any(feature = "gif", feature = "video"))]
 use crate::dmd_library;
 
-/// Git command wrapper with themed animations
+/// Runs git and plays the animation that matches the subcommand.
 pub struct GitWrapper {
     wrapper: CliWrapper,
 }
@@ -53,11 +57,9 @@ impl GitWrapper {
         let handle = executor.run_concurrent();
 
         // Show brief loading animation (max 2 seconds), stop early if command finishes
-        player.play_until(
-            SaveAnimation::default(),
-            Duration::from_secs(2),
-            || handle.is_done(),
-        )?;
+        player.play_until(SaveAnimation::default(), Duration::from_secs(2), || {
+            handle.is_done()
+        })?;
 
         // Clear animation and wait for command to complete
         drop(player);
@@ -91,11 +93,9 @@ impl GitWrapper {
         let handle = executor.run_concurrent();
 
         // Show brief loading animation (max 2 seconds), stop early if command finishes
-        player.play_until(
-            SaveAnimation::default(),
-            Duration::from_secs(2),
-            || handle.is_done(),
-        )?;
+        player.play_until(SaveAnimation::default(), Duration::from_secs(2), || {
+            handle.is_done()
+        })?;
 
         // Clear animation and wait for command to complete
         drop(player);
@@ -165,11 +165,9 @@ impl GitWrapper {
         let handle = executor.run_concurrent();
 
         // Show brief loading animation (max 2 seconds), stop early if command finishes
-        player.play_until(
-            SaveAnimation::default(),
-            Duration::from_secs(2),
-            || handle.is_done(),
-        )?;
+        player.play_until(SaveAnimation::default(), Duration::from_secs(2), || {
+            handle.is_done()
+        })?;
 
         // Clear animation and wait for command to complete
         drop(player);
@@ -214,11 +212,9 @@ impl GitWrapper {
         let handle = executor.run_concurrent();
 
         // Show brief loading animation (max 2 seconds), stop early if command finishes
-        player.play_until(
-            SaveAnimation::default(),
-            Duration::from_secs(2),
-            || handle.is_done(),
-        )?;
+        player.play_until(SaveAnimation::default(), Duration::from_secs(2), || {
+            handle.is_done()
+        })?;
 
         // Clear animation and wait for command to complete
         drop(player);
@@ -261,11 +257,9 @@ impl GitWrapper {
         let handle = executor.run_concurrent();
 
         // Show brief loading animation (max 1 second for status - shorter for quick commands)
-        player.play_until(
-            SaveAnimation::default(),
-            Duration::from_secs(1),
-            || handle.is_done(),
-        )?;
+        player.play_until(SaveAnimation::default(), Duration::from_secs(1), || {
+            handle.is_done()
+        })?;
 
         // Clear animation and wait for command to complete
         drop(player);
@@ -279,8 +273,8 @@ impl GitWrapper {
             let matrix = MatrixRainAnimation::with_params(
                 result.combined_output(),
                 Duration::from_secs(3),
-                0.7,   // Decode at 70% fall progress
-                0.5,   // 50% speed variation for chaos
+                0.7, // Decode at 70% fall progress
+                0.5, // 50% speed variation for chaos
             );
 
             // Play Matrix rain decode animation
@@ -306,19 +300,22 @@ impl GitWrapper {
         (now as usize) % max
     }
 
-    /// Execute git command directly (for convenience)
+    /// Run `git commit -m message`.
     pub fn commit(&mut self, message: &str) -> Result<CommandResult> {
         self.run(&["commit", "-m", message])
     }
 
+    /// Run `git push`.
     pub fn push(&mut self) -> Result<CommandResult> {
         self.run(&["push"])
     }
 
+    /// Run `git pull`.
     pub fn pull(&mut self) -> Result<CommandResult> {
         self.run(&["pull"])
     }
 
+    /// Run `git status`.
     pub fn status(&mut self) -> Result<CommandResult> {
         self.run(&["status"])
     }

@@ -1,4 +1,7 @@
-// Wrapper module for integrating animations with CLI commands
+//! Command wrappers that play an animation around a real process.
+//!
+//! [`CliWrapper`] is the generic wrapper. [`git::GitWrapper`] picks a
+//! themed animation from the git subcommand.
 
 pub mod git;
 
@@ -7,7 +10,7 @@ use crate::executor::{CommandExecutor, CommandResult};
 use anyhow::Result;
 use std::time::Duration;
 
-/// Wrapper for CLI commands with animations
+/// Plays a spinner, runs a command, then plays a short result animation.
 pub struct CliWrapper;
 
 impl CliWrapper {

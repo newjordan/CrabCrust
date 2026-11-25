@@ -1,4 +1,7 @@
-// Terminal rendering module
+//! Terminal backends for fullscreen and inline playback.
+//!
+//! Prefer [`crate::animation::AnimationPlayer`] unless you need to draw a
+//! grid yourself. Both modes restore the cursor when the renderer is dropped.
 use crate::braille::BrailleGrid;
 use anyhow::Result;
 use crossterm::{
@@ -17,18 +20,16 @@ use ratatui::{
 use std::io::{self, Stdout, Write};
 
 /// Rendering mode for animations
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum RenderMode {
     /// Fullscreen mode - takes over entire terminal (for demos)
+    #[default]
     Fullscreen,
-    /// Inline mode - renders in a fixed-height frame without clearing history
-    Inline { height: u16 },
-}
-
-impl Default for RenderMode {
-    fn default() -> Self {
-        Self::Fullscreen
-    }
+    /// Inline mode - renders in a fixed-height frame without clearing history.
+    Inline {
+        /// Rows reserved in the current scrollback.
+        height: u16,
+    },
 }
 
 /// Terminal renderer with panic-safe cleanup
@@ -50,11 +51,7 @@ impl Drop for TerminalCleanup {
         match self.mode {
             RenderMode::Fullscreen => {
                 let _ = disable_raw_mode();
-                let _ = execute!(
-                    io::stdout(),
-                    LeaveAlternateScreen,
-                    cursor::Show
-                );
+                let _ = execute!(io::stdout(), LeaveAlternateScreen, cursor::Show);
             }
             RenderMode::Inline { height } => {
                 // Clear the inline animation area
@@ -76,7 +73,10 @@ impl TerminalCleanup {
         // Clear each line by overwriting with spaces, then move down
         for i in 0..height {
             execute!(stdout, cursor::MoveTo(0, start_row + i))?;
-            queue!(stdout, crossterm::terminal::Clear(crossterm::terminal::ClearType::CurrentLine))?;
+            queue!(
+                stdout,
+                crossterm::terminal::Clear(crossterm::terminal::ClearType::CurrentLine)
+            )?;
         }
 
         // Move cursor back to the start position
@@ -109,7 +109,10 @@ impl TerminalRenderer {
                     terminal: Some(terminal),
                     mode,
                     inline_start_row: 0,
-                    _cleanup: TerminalCleanup { mode, inline_start_row: 0 },
+                    _cleanup: TerminalCleanup {
+                        mode,
+                        inline_start_row: 0,
+                    },
                 })
             }
             RenderMode::Inline { height } => {
@@ -136,7 +139,10 @@ impl TerminalRenderer {
                     terminal: None,
                     mode,
                     inline_start_row: animation_start_row,
-                    _cleanup: TerminalCleanup { mode, inline_start_row: animation_start_row },
+                    _cleanup: TerminalCleanup {
+                        mode,
+                        inline_start_row: animation_start_row,
+                    },
                 })
             }
         }
@@ -274,51 +280,52 @@ impl TerminalRenderer {
     pub fn render_braille_with_text(&mut self, grid: &BrailleGrid, text: &str) -> Result<()> {
         if let Some(terminal) = &mut self.terminal {
             terminal.draw(|frame| {
-            let area = frame.area();
+                let area = frame.area();
 
-            // Split area: top for braille, bottom for text
-            let braille_height = grid.height().min((area.height as usize).saturating_sub(5)) as u16;
-            let text_height = area.height.saturating_sub(braille_height);
+                // Split area: top for braille, bottom for text
+                let braille_height =
+                    grid.height().min((area.height as usize).saturating_sub(5)) as u16;
+                let text_height = area.height.saturating_sub(braille_height);
 
-            // Render braille in top area
-            let braille_area = Rect {
-                x: area.x,
-                y: area.y,
-                width: area.width,
-                height: braille_height,
-            };
+                // Render braille in top area
+                let braille_area = Rect {
+                    x: area.x,
+                    y: area.y,
+                    width: area.width,
+                    height: braille_height,
+                };
 
-            let mut braille_lines = Vec::new();
-            for y in 0..grid.height().min(braille_height as usize) {
-                let mut spans = Vec::new();
-                for x in 0..grid.width().min(area.width as usize) {
-                    let ch = grid.get_char(x, y);
-                    let color = grid.get_color(x, y);
+                let mut braille_lines = Vec::new();
+                for y in 0..grid.height().min(braille_height as usize) {
+                    let mut spans = Vec::new();
+                    for x in 0..grid.width().min(area.width as usize) {
+                        let ch = grid.get_char(x, y);
+                        let color = grid.get_color(x, y);
 
-                    let style = if let Some(c) = color {
-                        Style::default().fg(ratatui::style::Color::Rgb(c.r, c.g, c.b))
-                    } else {
-                        Style::default()
-                    };
+                        let style = if let Some(c) = color {
+                            Style::default().fg(ratatui::style::Color::Rgb(c.r, c.g, c.b))
+                        } else {
+                            Style::default()
+                        };
 
-                    spans.push(Span::styled(ch.to_string(), style));
+                        spans.push(Span::styled(ch.to_string(), style));
+                    }
+                    braille_lines.push(Line::from(spans));
                 }
-                braille_lines.push(Line::from(spans));
-            }
 
-            let braille_paragraph = Paragraph::new(braille_lines);
-            frame.render_widget(braille_paragraph, braille_area);
+                let braille_paragraph = Paragraph::new(braille_lines);
+                frame.render_widget(braille_paragraph, braille_area);
 
-            // Render text in bottom area
-            let text_area = Rect {
-                x: area.x,
-                y: area.y + braille_height,
-                width: area.width,
-                height: text_height,
-            };
+                // Render text in bottom area
+                let text_area = Rect {
+                    x: area.x,
+                    y: area.y + braille_height,
+                    width: area.width,
+                    height: text_height,
+                };
 
-            let text_paragraph = Paragraph::new(text);
-            frame.render_widget(text_paragraph, text_area);
+                let text_paragraph = Paragraph::new(text);
+                frame.render_widget(text_paragraph, text_area);
             })?;
         }
 

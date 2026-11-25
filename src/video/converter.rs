@@ -1,7 +1,7 @@
-// Video and GIF to Braille frame converter
-//
-// Converts video files and animated GIFs into sequences of Braille frames
-// that can be played back in CrabCrust animations.
+//! Turn image files, GIFs, and videos into [`BrailleFrame`] values.
+//!
+//! [`crate::animation::FrameBasedAnimation::from_braille_frames`] plays the
+//! frames these functions return.
 
 use crate::braille::BrailleGrid;
 use anyhow::{Context, Result};
@@ -56,13 +56,13 @@ impl BrailleFrame {
                         if (pattern & (1 << bit)) != 0 {
                             // Map bit to dot position
                             let (dot_x, dot_y) = match bit {
-                                0 => (x * 2, y * 4),     // Dot 1
-                                1 => (x * 2, y * 4 + 1), // Dot 2
-                                2 => (x * 2, y * 4 + 2), // Dot 3
-                                3 => (x * 2 + 1, y * 4), // Dot 4
+                                0 => (x * 2, y * 4),         // Dot 1
+                                1 => (x * 2, y * 4 + 1),     // Dot 2
+                                2 => (x * 2, y * 4 + 2),     // Dot 3
+                                3 => (x * 2 + 1, y * 4),     // Dot 4
                                 4 => (x * 2 + 1, y * 4 + 1), // Dot 5
                                 5 => (x * 2 + 1, y * 4 + 2), // Dot 6
-                                6 => (x * 2, y * 4 + 3), // Dot 7
+                                6 => (x * 2, y * 4 + 3),     // Dot 7
                                 7 => (x * 2 + 1, y * 4 + 3), // Dot 8
                                 _ => unreachable!(),
                             };
@@ -82,8 +82,7 @@ pub fn image_to_frame<P: AsRef<Path>>(
     height: usize,
     threshold: u8,
 ) -> Result<BrailleFrame> {
-    let img = image::open(path.as_ref())
-        .context("Failed to open image file")?;
+    let img = image::open(path.as_ref()).context("Failed to open image file")?;
 
     // Convert to grayscale
     let gray = img.to_luma8();
@@ -115,12 +114,10 @@ pub fn gif_to_frames<P: AsRef<Path>>(
     use std::fs::File;
     use std::io::BufReader;
 
-    let file = File::open(path.as_ref())
-        .context("Failed to open GIF file")?;
+    let file = File::open(path.as_ref()).context("Failed to open GIF file")?;
 
     let reader = BufReader::new(file);
-    let decoder = image::codecs::gif::GifDecoder::new(reader)
-        .context("Failed to decode GIF")?;
+    let decoder = image::codecs::gif::GifDecoder::new(reader).context("Failed to decode GIF")?;
 
     let frames = decoder.into_frames();
     let mut braille_frames = Vec::new();
@@ -128,7 +125,7 @@ pub fn gif_to_frames<P: AsRef<Path>>(
     for frame_result in frames {
         let frame = frame_result.context("Failed to decode GIF frame")?;
         let (delay_num, delay_den) = frame.delay().numer_denom_ms();
-        let duration_ms = (delay_num / delay_den.max(1)) as u32;
+        let duration_ms = delay_num / delay_den.max(1);
 
         // Convert frame to grayscale
         let img = frame.buffer();
@@ -166,9 +163,10 @@ pub fn video_to_frames_from_bytes(
     use std::io::Write;
 
     // Write to temp file (FFmpeg requires file path)
-    let mut temp_file = tempfile::NamedTempFile::with_suffix(".mp4")
-        .context("Failed to create temp file")?;
-    temp_file.write_all(data)
+    let mut temp_file =
+        tempfile::NamedTempFile::with_suffix(".mp4").context("Failed to create temp file")?;
+    temp_file
+        .write_all(data)
         .context("Failed to write video data to temp file")?;
     temp_file.flush()?;
 
@@ -189,8 +187,7 @@ pub fn video_to_frames<P: AsRef<Path>>(
 
     ffmpeg::init().context("Failed to initialize FFmpeg")?;
 
-    let mut input = ffmpeg::format::input(&path)
-        .context("Failed to open video file")?;
+    let mut input = ffmpeg::format::input(&path).context("Failed to open video file")?;
 
     let input_stream = input
         .streams()
@@ -199,8 +196,9 @@ pub fn video_to_frames<P: AsRef<Path>>(
 
     let video_stream_index = input_stream.index();
 
-    let context_decoder = ffmpeg::codec::context::Context::from_parameters(input_stream.parameters())
-        .context("Failed to create codec context")?;
+    let context_decoder =
+        ffmpeg::codec::context::Context::from_parameters(input_stream.parameters())
+            .context("Failed to create codec context")?;
 
     let mut decoder = context_decoder
         .decoder()
@@ -215,12 +213,12 @@ pub fn video_to_frames<P: AsRef<Path>>(
         (width * 2) as u32,  // Braille dot width
         (height * 4) as u32, // Braille dot height
         ffmpeg::software::scaling::Flags::BILINEAR,
-    ).context("Failed to create scaler")?;
+    )
+    .context("Failed to create scaler")?;
 
     let mut braille_frames = Vec::new();
     let mut frame_count = 0;
 
-    let time_base = input_stream.time_base();
     let fps = input_stream.avg_frame_rate();
     let frame_duration_ms = if fps.numerator() > 0 {
         (1000 * fps.denominator() as u32) / fps.numerator() as u32
@@ -229,14 +227,15 @@ pub fn video_to_frames<P: AsRef<Path>>(
     };
 
     let receive_and_process_frames = |decoder: &mut ffmpeg::decoder::Video,
-                                       braille_frames: &mut Vec<BrailleFrame>,
-                                       frame_count: &mut usize,
-                                       scaler: &mut ffmpeg::software::scaling::Context,
-                                       width: usize,
-                                       height: usize,
-                                       threshold: u8,
-                                       frame_duration_ms: u32,
-                                       max_frames: Option<usize>| -> Result<bool> {
+                                      braille_frames: &mut Vec<BrailleFrame>,
+                                      frame_count: &mut usize,
+                                      scaler: &mut ffmpeg::software::scaling::Context,
+                                      width: usize,
+                                      height: usize,
+                                      threshold: u8,
+                                      frame_duration_ms: u32,
+                                      max_frames: Option<usize>|
+     -> Result<bool> {
         let mut decoded = ffmpeg::util::frame::video::Video::empty();
         while decoder.receive_frame(&mut decoded).is_ok() {
             if let Some(max) = max_frames {
@@ -246,7 +245,8 @@ pub fn video_to_frames<P: AsRef<Path>>(
             }
 
             let mut gray_frame = ffmpeg::util::frame::video::Video::empty();
-            scaler.run(&decoded, &mut gray_frame)
+            scaler
+                .run(&decoded, &mut gray_frame)
                 .context("Failed to scale frame")?;
 
             // Create Braille grid
@@ -289,7 +289,9 @@ pub fn video_to_frames<P: AsRef<Path>>(
 
     for (stream, packet) in input.packets() {
         if stream.index() == video_stream_index {
-            decoder.send_packet(&packet).context("Failed to send packet")?;
+            decoder
+                .send_packet(&packet)
+                .context("Failed to send packet")?;
 
             if receive_and_process_frames(
                 &mut decoder,

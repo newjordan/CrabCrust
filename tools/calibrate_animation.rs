@@ -30,7 +30,10 @@ fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
         eprintln!("Usage: {} <video_file> [output_name]", args[0]);
-        eprintln!("Example: {} ref/computer_fingers.mp4 computer_fingers", args[0]);
+        eprintln!(
+            "Example: {} ref/computer_fingers.mp4 computer_fingers",
+            args[0]
+        );
         std::process::exit(1);
     }
 
@@ -201,7 +204,10 @@ fn run_calibration(
                     KeyCode::Char('s') => {
                         // Save settings
                         save_embedded_file(input_path, output_name, settings)?;
-                        show_message(stdout, &format!("Saved to src/animation/embedded_{}.rs", output_name))?;
+                        show_message(
+                            stdout,
+                            &format!("Saved to src/animation/embedded_{}.rs", output_name),
+                        )?;
                         std::thread::sleep(Duration::from_secs(2));
                     }
                     _ => {}
@@ -218,7 +224,7 @@ fn run_calibration(
         // Update frame
         if !settings.paused && !frames.is_empty() {
             let frame_duration = Duration::from_millis(
-                (frames[current_frame].duration_ms as f32 / settings.speed) as u64
+                (frames[current_frame].duration_ms as f32 / settings.speed) as u64,
             );
 
             if last_frame_time.elapsed() >= frame_duration {
@@ -244,8 +250,7 @@ struct BrailleFrame {
 fn convert_video(path: &str, settings: &CalibrationSettings) -> Result<Vec<BrailleFrame>> {
     use ffmpeg_next as ffmpeg;
 
-    let mut input = ffmpeg::format::input(&path)
-        .context("Failed to open video file")?;
+    let mut input = ffmpeg::format::input(&path).context("Failed to open video file")?;
 
     let input_stream = input
         .streams()
@@ -254,8 +259,9 @@ fn convert_video(path: &str, settings: &CalibrationSettings) -> Result<Vec<Brail
 
     let video_stream_index = input_stream.index();
 
-    let context_decoder = ffmpeg::codec::context::Context::from_parameters(input_stream.parameters())
-        .context("Failed to create codec context")?;
+    let context_decoder =
+        ffmpeg::codec::context::Context::from_parameters(input_stream.parameters())
+            .context("Failed to create codec context")?;
 
     let mut decoder = context_decoder
         .decoder()
@@ -270,7 +276,8 @@ fn convert_video(path: &str, settings: &CalibrationSettings) -> Result<Vec<Brail
         (settings.width * 2) as u32,
         (settings.height * 4) as u32,
         ffmpeg::software::scaling::Flags::BILINEAR,
-    ).context("Failed to create scaler")?;
+    )
+    .context("Failed to create scaler")?;
 
     let mut braille_frames = Vec::new();
 
@@ -284,11 +291,13 @@ fn convert_video(path: &str, settings: &CalibrationSettings) -> Result<Vec<Brail
     let process_frames = |decoder: &mut ffmpeg::decoder::Video,
                           braille_frames: &mut Vec<BrailleFrame>,
                           scaler: &mut ffmpeg::software::scaling::Context,
-                          settings: &CalibrationSettings| -> Result<()> {
+                          settings: &CalibrationSettings|
+     -> Result<()> {
         let mut decoded = ffmpeg::util::frame::video::Video::empty();
         while decoder.receive_frame(&mut decoded).is_ok() {
             let mut gray_frame = ffmpeg::util::frame::video::Video::empty();
-            scaler.run(&decoded, &mut gray_frame)
+            scaler
+                .run(&decoded, &mut gray_frame)
                 .context("Failed to scale frame")?;
 
             // Get the actual stride (bytes per row) - may be larger than width due to alignment
@@ -324,7 +333,9 @@ fn convert_video(path: &str, settings: &CalibrationSettings) -> Result<Vec<Brail
 
     for (stream, packet) in input.packets() {
         if stream.index() == video_stream_index {
-            decoder.send_packet(&packet).context("Failed to send packet")?;
+            decoder
+                .send_packet(&packet)
+                .context("Failed to send packet")?;
             process_frames(&mut decoder, &mut braille_frames, &mut scaler, settings)?;
         }
     }
@@ -341,29 +352,38 @@ fn convert_to_braille_dotmax(gray_data: &[u8], settings: &CalibrationSettings) -
     let img_height = settings.height * 4;
 
     // Pre-process: apply gamma and contrast
-    let processed: Vec<u8> = gray_data.iter().map(|&p| {
-        let mut val = p as f32 / 255.0;
+    let processed: Vec<u8> = gray_data
+        .iter()
+        .map(|&p| {
+            let mut val = p as f32 / 255.0;
 
-        // Apply gamma correction
-        val = val.powf(settings.gamma);
+            // Apply gamma correction
+            val = val.powf(settings.gamma);
 
-        // Apply contrast
-        val = ((val - 0.5) * settings.contrast + 0.5).clamp(0.0, 1.0);
+            // Apply contrast
+            val = ((val - 0.5) * settings.contrast + 0.5).clamp(0.0, 1.0);
 
-        // Invert if needed
-        if settings.invert {
-            val = 1.0 - val;
-        }
+            // Invert if needed
+            if settings.invert {
+                val = 1.0 - val;
+            }
 
-        (val * 255.0) as u8
-    }).collect();
+            (val * 255.0) as u8
+        })
+        .collect();
 
     // Apply dithering based on mode
     let dithered = match settings.dither_mode {
         DitherMode::None => threshold_only(&processed, img_width, img_height, settings.threshold),
-        DitherMode::FloydSteinberg => floyd_steinberg_dither(&processed, img_width, img_height, settings.threshold),
-        DitherMode::Ordered => ordered_dither(&processed, img_width, img_height, settings.threshold),
-        DitherMode::Atkinson => atkinson_dither(&processed, img_width, img_height, settings.threshold),
+        DitherMode::FloydSteinberg => {
+            floyd_steinberg_dither(&processed, img_width, img_height, settings.threshold)
+        }
+        DitherMode::Ordered => {
+            ordered_dither(&processed, img_width, img_height, settings.threshold)
+        }
+        DitherMode::Atkinson => {
+            atkinson_dither(&processed, img_width, img_height, settings.threshold)
+        }
     };
 
     // Convert dithered binary image to braille patterns
@@ -446,10 +466,10 @@ fn floyd_steinberg_dither(data: &[u8], width: usize, height: usize, threshold: u
 fn ordered_dither(data: &[u8], width: usize, height: usize, threshold: u8) -> Vec<bool> {
     // 4x4 Bayer matrix (normalized to 0-255 range)
     const BAYER: [[u8; 4]; 4] = [
-        [  0, 128,  32, 160],
-        [192,  64, 224,  96],
-        [ 48, 176,  16, 144],
-        [240, 112, 208,  80],
+        [0, 128, 32, 160],
+        [192, 64, 224, 96],
+        [48, 176, 16, 144],
+        [240, 112, 208, 80],
     ];
 
     let mut result = vec![false; width * height];
@@ -516,20 +536,30 @@ fn render_frame(
     execute!(stdout, cursor::MoveTo(0, 0))?;
 
     // Header with controls
-    writeln!(stdout, "=== Animation Calibration Tool (Dotmax Enhanced) ===\r")?;
-    writeln!(stdout, "Threshold: {:3} | Dither: {:15} | Gamma: {:.1} | Contrast: {:.1}\r",
+    writeln!(
+        stdout,
+        "=== Animation Calibration Tool (Dotmax Enhanced) ===\r"
+    )?;
+    writeln!(
+        stdout,
+        "Threshold: {:3} | Dither: {:15} | Gamma: {:.1} | Contrast: {:.1}\r",
         settings.threshold,
         settings.dither_mode.name(),
         settings.gamma,
         settings.contrast,
     )?;
-    writeln!(stdout, "Invert: {:5} | Speed: {:.2}x | Frame: {}/{}\r",
+    writeln!(
+        stdout,
+        "Invert: {:5} | Speed: {:.2}x | Frame: {}/{}\r",
         if settings.invert { "ON" } else { "OFF" },
         settings.speed,
         current_frame + 1,
         frames.len()
     )?;
-    writeln!(stdout, "Keys: Arrows=threshold D=dither I=invert g/G=gamma k/K=contrast S=save Q=quit\r")?;
+    writeln!(
+        stdout,
+        "Keys: Arrows=threshold D=dither I=invert g/G=gamma k/K=contrast S=save Q=quit\r"
+    )?;
     writeln!(stdout, "{}\r", "─".repeat(80))?;
 
     // Render current frame
@@ -562,7 +592,11 @@ fn show_message(stdout: &mut std::io::Stdout, msg: &str) -> Result<()> {
     Ok(())
 }
 
-fn save_embedded_file(input_path: &str, output_name: &str, settings: &CalibrationSettings) -> Result<()> {
+fn save_embedded_file(
+    input_path: &str,
+    output_name: &str,
+    settings: &CalibrationSettings,
+) -> Result<()> {
     let frames = convert_video(input_path, settings)?;
     let rust_code = generate_rust_code(output_name, &frames, settings);
 
@@ -573,22 +607,44 @@ fn save_embedded_file(input_path: &str, output_name: &str, settings: &Calibratio
     Ok(())
 }
 
-fn generate_rust_code(name: &str, frames: &[BrailleFrame], settings: &CalibrationSettings) -> String {
+fn generate_rust_code(
+    name: &str,
+    frames: &[BrailleFrame],
+    settings: &CalibrationSettings,
+) -> String {
     let mut code = String::new();
 
     code.push_str(&format!("// Auto-generated embedded animation: {}\n", name));
     code.push_str("// Do not edit manually - regenerate with calibrate_animation tool\n");
-    code.push_str(&format!("// Settings: threshold={}, dither={}, gamma={:.1}, contrast={:.1}, invert={}\n\n",
-        settings.threshold, settings.dither_mode.name(), settings.gamma, settings.contrast, settings.invert));
+    code.push_str(&format!(
+        "// Settings: threshold={}, dither={}, gamma={:.1}, contrast={:.1}, invert={}\n\n",
+        settings.threshold,
+        settings.dither_mode.name(),
+        settings.gamma,
+        settings.contrast,
+        settings.invert
+    ));
     code.push_str("use crate::video::converter::BrailleFrame;\n\n");
 
     code.push_str(&format!("const FRAME_COUNT: usize = {};\n", frames.len()));
-    code.push_str(&format!("const FRAME_WIDTH: usize = {};\n", frames[0].width));
-    code.push_str(&format!("const FRAME_HEIGHT: usize = {};\n", frames[0].height));
-    code.push_str(&format!("const FRAME_DURATION_MS: u32 = {};\n\n", frames[0].duration_ms));
+    code.push_str(&format!(
+        "const FRAME_WIDTH: usize = {};\n",
+        frames[0].width
+    ));
+    code.push_str(&format!(
+        "const FRAME_HEIGHT: usize = {};\n",
+        frames[0].height
+    ));
+    code.push_str(&format!(
+        "const FRAME_DURATION_MS: u32 = {};\n\n",
+        frames[0].duration_ms
+    ));
 
     let total_patterns: usize = frames.iter().map(|f| f.patterns.len()).sum();
-    code.push_str(&format!("const PATTERN_DATA: [u8; {}] = [\n", total_patterns));
+    code.push_str(&format!(
+        "const PATTERN_DATA: [u8; {}] = [\n",
+        total_patterns
+    ));
 
     for (i, frame) in frames.iter().enumerate() {
         code.push_str(&format!("    // Frame {}\n    ", i));
@@ -602,8 +658,14 @@ fn generate_rust_code(name: &str, frames: &[BrailleFrame], settings: &Calibratio
     }
     code.push_str("];\n\n");
 
-    code.push_str(&format!("/// Get pre-converted frames for {} animation\n", name));
-    code.push_str(&format!("pub fn get_{}_frames() -> Vec<BrailleFrame> {{\n", name));
+    code.push_str(&format!(
+        "/// Get pre-converted frames for {} animation\n",
+        name
+    ));
+    code.push_str(&format!(
+        "pub fn get_{}_frames() -> Vec<BrailleFrame> {{\n",
+        name
+    ));
     code.push_str("    let patterns_per_frame = FRAME_WIDTH * FRAME_HEIGHT;\n");
     code.push_str("    (0..FRAME_COUNT)\n");
     code.push_str("        .map(|i| {\n");

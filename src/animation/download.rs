@@ -3,7 +3,7 @@ use super::Animation;
 use crate::braille::{BrailleGrid, Color};
 use std::time::Duration;
 
-/// Download animation with downward arrows
+/// Downward arrows used for `git pull`.
 pub struct DownloadAnimation {
     elapsed: Duration,
     total_duration: Duration,
@@ -18,6 +18,7 @@ struct Particle {
 }
 
 impl DownloadAnimation {
+    /// Drop arrows for `duration`, then stop.
     pub fn new(duration: Duration) -> Self {
         let mut particles = Vec::new();
 
@@ -76,14 +77,14 @@ impl Animation for DownloadAnimation {
 
         // Draw download icon/arrow at top center
         let icon_x = center_x;
-        let icon_y = center_y - 60;
+        let icon_y = center_y.saturating_sub(60);
 
         // Draw down arrow
-        for y in 0..40 {
+        for y in 0..40i32 {
             let width = if y < 25 { 8 } else { (40 - y) * 2 };
-            for x in -(width as i32 / 2)..(width as i32 / 2) {
+            for x in -(width / 2)..(width / 2) {
                 let px = (icon_x as i32 + x).max(0) as usize;
-                let py = (icon_y as i32 + y as i32).max(0) as usize;
+                let py = (icon_y as i32 + y).max(0) as usize;
                 if px < grid.dot_width() && py < grid.dot_height() {
                     grid.set_dot_with_color(px, py, Color::new(0, 255, 150));
                 }
@@ -109,8 +110,8 @@ impl Animation for DownloadAnimation {
 
                 // Arrow head
                 if y + 8 < grid.dot_height() {
-                    for dx in 0..7 {
-                        let px = (x as i32 - 2 + dx as i32).max(0) as usize;
+                    for dx in 0..7i32 {
+                        let px = (x as i32 - 2 + dx).max(0) as usize;
                         let py = y + 8;
                         if px < grid.dot_width() {
                             grid.set_dot_with_color(px, py, particle.color);
@@ -119,22 +120,6 @@ impl Animation for DownloadAnimation {
                 }
             }
         }
-
-        // Draw text
-        let progress = self.elapsed.as_secs_f32() / self.total_duration.as_secs_f32();
-        let label = if progress < 0.9 {
-            "Downloading..."
-        } else {
-            "Download Complete!"
-        };
-
-        // Center the label
-        let label_x = center_x.saturating_sub(label.len() * 4);
-        let label_y = center_y + 70;
-
-        // Note: Text rendering would need proper font support
-        // For now, just skip the text rendering in the animation
-        let _ = (label, label_x, label_y); // Suppress unused warnings
     }
 
     fn name(&self) -> &str {

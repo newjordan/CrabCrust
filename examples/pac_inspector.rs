@@ -2,10 +2,9 @@
 // Examines .pac file structure and attempts to extract animations
 
 use anyhow::Result;
-use std::env;
 
 #[cfg(feature = "video")]
-use crabcrust::video::pac::{PacHeader, parse_pac_file};
+use crabcrust::video::pac::{parse_pac_file, PacHeader};
 
 fn main() -> Result<()> {
     #[cfg(not(feature = "video"))]
@@ -17,6 +16,7 @@ fn main() -> Result<()> {
 
     #[cfg(feature = "video")]
     {
+        use std::env;
         let args: Vec<String> = env::args().collect();
         if args.len() < 2 {
             eprintln!("Usage: {} <file.pac>", args[0]);
@@ -33,7 +33,11 @@ fn main() -> Result<()> {
         println!("   Magic: {:?}", String::from_utf8_lossy(&header.magic));
         println!("   Version: {}", header.version());
         println!("   Format Type: 0x{:04x}", header.format_type);
-        println!("   Data Size: {} bytes ({:.2} KB)", header.data.len(), header.data.len() as f64 / 1024.0);
+        println!(
+            "   Data Size: {} bytes ({:.2} KB)",
+            header.data.len(),
+            header.data.len() as f64 / 1024.0
+        );
 
         // Analyze data structure
         println!("\n🔬 Data Analysis:");
@@ -62,7 +66,10 @@ fn main() -> Result<()> {
         for (size, desc) in potential_frame_sizes {
             let num_frames = header.data.len() / size;
             if num_frames > 0 && num_frames < 1000 {
-                println!("   Possible: {} frames @ {} bytes each ({})", num_frames, size, desc);
+                println!(
+                    "   Possible: {} frames @ {} bytes each ({})",
+                    num_frames, size, desc
+                );
             }
         }
 
@@ -72,11 +79,13 @@ fn main() -> Result<()> {
             Ok(animations) => {
                 println!("   Found {} animations", animations.len());
                 for (i, anim) in animations.iter().enumerate() {
-                    println!("   Animation {}: \"{}\" ({} frames, {:.2}s)",
-                             i + 1,
-                             anim.name,
-                             anim.frame_count(),
-                             anim.total_duration_ms() as f64 / 1000.0);
+                    println!(
+                        "   Animation {}: \"{}\" ({} frames, {:.2}s)",
+                        i + 1,
+                        anim.name,
+                        anim.frame_count(),
+                        anim.total_duration_ms() as f64 / 1000.0
+                    );
                 }
             }
             Err(e) => {
@@ -86,7 +95,6 @@ fn main() -> Result<()> {
         }
 
         println!("\n✨ Inspection complete!");
+        Ok(())
     }
-
-    Ok(())
 }

@@ -14,7 +14,7 @@ struct ConfettiPiece {
     shape: u8, // 0 = square, 1 = circle, 2 = triangle
 }
 
-/// Confetti celebration animation
+/// Falling confetti for a celebration.
 pub struct ConfettiAnimation {
     elapsed: Duration,
     total_duration: Duration,
@@ -22,18 +22,19 @@ pub struct ConfettiAnimation {
 }
 
 impl ConfettiAnimation {
+    /// Drop confetti for `duration`.
     pub fn new(duration: Duration) -> Self {
         let mut pieces = Vec::new();
 
         let colors = [
-            Color::new(255, 0, 0),      // Red
-            Color::new(255, 165, 0),    // Orange
-            Color::new(255, 255, 0),    // Yellow
-            Color::new(0, 255, 0),      // Green
-            Color::new(0, 0, 255),      // Blue
-            Color::new(128, 0, 128),    // Purple
-            Color::new(255, 192, 203),  // Pink
-            Color::new(255, 215, 0),    // Gold
+            Color::new(255, 0, 0),     // Red
+            Color::new(255, 165, 0),   // Orange
+            Color::new(255, 255, 0),   // Yellow
+            Color::new(0, 255, 0),     // Green
+            Color::new(0, 0, 255),     // Blue
+            Color::new(128, 0, 128),   // Purple
+            Color::new(255, 192, 203), // Pink
+            Color::new(255, 215, 0),   // Gold
         ];
 
         // Create confetti pieces
@@ -106,7 +107,11 @@ impl Animation for ConfettiAnimation {
             let x = piece.x as i32;
             let y = piece.y as i32;
 
-            if x >= 0 && y >= 0 && (x as usize) < grid.dot_width() && (y as usize) < grid.dot_height() {
+            if x >= 0
+                && y >= 0
+                && (x as usize) < grid.dot_width()
+                && (y as usize) < grid.dot_height()
+            {
                 match piece.shape {
                     0 => {
                         // Square
